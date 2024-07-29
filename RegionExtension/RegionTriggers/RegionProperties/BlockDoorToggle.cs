@@ -44,7 +44,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
                     if (TShock.Regions.CanBuild(x, y, TShock.Players[args.Msg.whoAmI]))
                         return;
                     var region = TShock.Regions.GetTopRegion(TShock.Regions.InAreaRegion(x, y));
-                    if (_regions.ContainsKey(region))
+                    if (region is not null && _regions.ContainsKey(region))
                         args.Handled = true;
                     break;
             }
@@ -58,32 +58,31 @@ namespace RegionExtension.RegionTriggers.RegionProperties
 
         public void RemoveRegionProperties(Region region, ICommandParam[] commandParams)
         {
-            if (_regions.ContainsKey(region))
+            if (region is not null && _regions.ContainsKey(region))
                 _regions.Remove(region);
         }
 
         public void SetFromString(Region region, ConditionStringPair args)
         {
-            if (!_regions.ContainsKey(region))
+            if (region is not null && !_regions.ContainsKey(region))
                 _regions.Add(region, ConditionDataPair<int>.GetFromString(args).Conditions);
         }
 
         public ConditionStringPair GetStringArgs(Region region) =>
             new ConditionDataPair<int>(_regions[region], new List<int> { 1 }).ConvertToString();
 
-        public void ClearProperties(Region region) =>
-            _regions.Remove(region);
+        public void ClearProperties(Region region) => _regions.Remove(region);
 
         public void AddCondition(Region region, ICommandParam[] commandParams, IRegionCondition condition)
         {
-            if (!_regions.ContainsKey(region))
+            if (region is not null && !_regions.ContainsKey(region))
                 return;
             _regions[region] = _regions[region].Where(p => !p.GetNames()[0].Equals(condition.GetNames()[0])).Append(condition).ToList();
         }
 
         public void RemoveCondition(Region region, ICommandParam[] commandParams, IRegionCondition condition)
         {
-            if (!_regions.ContainsKey(region))
+            if (region is not null && !_regions.ContainsKey(region))
                 return;
             _regions[region] = _regions[region].Where(p => !p.GetNames()[0].Equals(condition.GetNames()[0])).ToList();
         }

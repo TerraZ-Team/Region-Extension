@@ -120,7 +120,7 @@ namespace RegionExtension
 
         private void OnGreetPlayer(GreetPlayerEventArgs args)
         {
-            RegionExtensionManager.TriggerManager.OnPlayerEnter(args);
+            RegionExtensionManager?.TriggerManager?.OnPlayerEnter(args);
             TriggerIgnores[args.Who] = false;
         }
 
