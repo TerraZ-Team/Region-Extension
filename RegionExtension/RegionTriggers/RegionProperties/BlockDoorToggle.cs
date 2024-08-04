@@ -75,14 +75,14 @@ namespace RegionExtension.RegionTriggers.RegionProperties
 
         public void AddCondition(Region region, ICommandParam[] commandParams, IRegionCondition condition)
         {
-            if (region is not null && !_regions.ContainsKey(region))
+            if (region is null || !_regions.ContainsKey(region))
                 return;
             _regions[region] = _regions[region].Where(p => !p.GetNames()[0].Equals(condition.GetNames()[0])).Append(condition).ToList();
         }
 
         public void RemoveCondition(Region region, ICommandParam[] commandParams, IRegionCondition condition)
         {
-            if (region is not null && !_regions.ContainsKey(region))
+            if (region is null || !_regions.ContainsKey(region))
                 return;
             _regions[region] = _regions[region].Where(p => !p.GetNames()[0].Equals(condition.GetNames()[0])).ToList();
         }
