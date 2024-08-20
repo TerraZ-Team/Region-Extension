@@ -156,7 +156,7 @@ namespace RegionExtension.Database
 
         public List<string> GetRegionInfo(int id, bool insertDefaultInfo = true)
         {
-            var region = TShock.Regions.GetRegionByID(id);
+            Region region = TShock.Regions.GetRegionByID(id);
             if (region == null)
                 return null;
             var lines = new List<string>
@@ -200,12 +200,15 @@ namespace RegionExtension.Database
                 AddNewRegion(id, TShock.UserAccounts.GetUserAccountByName(region.Owner).ID);
                 extInfo = RegionsInfo.FirstOrDefault(ri => ri.Id == id);
             }
-            var user = TShock.UserAccounts.GetUserAccountByID(extInfo.LastUserId);
-            var userName = user == null ? "N/A" : user.Name;
-            lines.Add(string.Concat("Last user: ", userName));
-            lines.Add(string.Concat("Last update: ", extInfo.LastUpdate.ToString(Utils.DateFormat)));
-            lines.Add(string.Concat("Last activity: ", extInfo.LastActivity.ToString(Utils.DateFormat)));
-            lines.Add(string.Concat("Date creation: ", extInfo.DateCreation.ToString(Utils.DateFormat)));
+            if (extInfo is not null)
+            {
+                var user = TShock.UserAccounts.GetUserAccountByID(extInfo.LastUserId);
+                var userName = user == null ? "N/A" : user.Name;
+                lines.Add(string.Concat("Last user: ", userName));
+                lines.Add(string.Concat("Last update: ", extInfo.LastUpdate.ToString(Utils.DateFormat)));
+                lines.Add(string.Concat("Last activity: ", extInfo.LastActivity.ToString(Utils.DateFormat)));
+                lines.Add(string.Concat("Date creation: ", extInfo.DateCreation.ToString(Utils.DateFormat)));
+            }
             return lines;
         }
 
