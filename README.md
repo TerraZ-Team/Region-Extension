@@ -1,353 +1,264 @@
 # Region Extension
-## EN
-Plugin add more commands for better region management & add context parameters.
-#### RegionExt (/re, /regionext)
-All commands integrated with /region, also change all default commands.
-- `move/mv <regionname> <amount> <u/d/r/l>` - Move region with given name in given direction.
-- `setowner/so [useraccount] [region]` - Set region owner.
-- `clearmembers/cm [regionname]` - Remove all members from region.
-- `fastregion/fr <regionname> [ownername] [z] [protect]` - Create new region with two given point and params.
-- `frbreak` - Breaks fast region request.
-- `ownerlist/ol [username] [page]` - Get list of regions in which the given player is owner.
-- `allowedlist/al [username] [page]` - Get list of regions in which the given player is owner.
-- `listact/la [page]` - Get list of last active regions.
-- `listrequest/lr [page]` - Lists all region requests.
-- `requestinfo/ri [region] [page]` - Displays several information about the given request.
-- `requestaccept/ra [region]` - Accept region request.
-- `requestdeny/rd [region]` - Deny region request.\
-P.S. Requests are sent from the player who created the region via the /regionown command, the player who has access to the main commands must check the request, otherwise the region will be deleted according to the settings.
-#### RegionOwn (/ro, /regionown)
-Commands for owners of regions. The commands are identical to the main ones, however, each checks whether the player is the owner of the region
-- `setowner/so [useraccount] [region]` - Set region owner.
-- `clearmembers/cm [regionname]` - Remove all members from region.
-- `ownerlist/ol [page]` - Get list of regions in which you is owner
-- `allow/a <useraccount> [region]` - Allows a user to a region.
-- `remove/r <useraccount> [region]` - Removes a user from a region.
-- `info/i [region] [page]` - Displays several information about the given region.
-- `set <1/2>` - Sets the temporary region points.
-- `define/d <name>` - Defines the region with the given name and send request.
-- `delete/del [region]` - Deletes the given region.
-- `fastregion/fr <region>` - Create new region with two given point and params. Also send request.
-- `fastregionbreak/frb` - Breaks fast region request.
-#### RegionHistory (/rh, /regiohistory)
-Commands for region history.
-- `undo/u <count> [region]` - Undo actions on region.
-- `redo/r <count> [region]` - Redo actions on region.
-- `restore/res <regionname>` - Restore region from deleted regions.
-- `restoreuser/resu <user> [count]` - Restore region from deleted regions with user.
-- `history/h [page] [region]` - Gets history about region.
-- `dellist/dl [page]` - Get list of deleted regions.
-P.S. The maximum buffer for deleted regions is 64 entries.
-#### RegionTrigger (/rt, /regiontrigger)
-Commands for region triggers.
-- `add/a <region> <event> <trigger>` - Adds trigger to the region.
-- `delete/d <region> <id>` - Deletes trigger from the region.
-- `info/i [region] [page]` - Info about triggers of the region.
-- `list/l [page]` - List all available triggers.
-- `helptrigger/ht <trigger> [page]` - Returns all info about given trigger.
-- `eventlist/el [page]` - List all available events.
-- `conditionlist/cl [page]` - List available conditions.
-- `addcond/ac <region> <condition> [ids...]` - Adds conditions to the trigger.
-- `removecond/rc <region> <condition> [ids...]` - Removes condition from the trigger.
-- `clear/c [region]` - Clears triggers from the region.\
-Trigger - an action that takes place on a given event.\
-Example: By setting the trigger /rt a $t e msg Hello world!\
-To the player who entered (event - e/enter) in region ($t) will be sent a message (action - msg/message) "Hello world!".\
-Conditions - the condition under which the trigger will work.\
-Example: By setting the condition /rt ac $t !a 0\
-A message trigger set in a region and given an id of 0 (can be checked in "/rt i" command) will only be sent to a player who is not allowed to the region (the condition - a/allowed, '!' in front of the name - makes the condition opposite).\
-If a trigger has more than 1 condition, all conditions must be true for the trigger to execute.
-#### RegionProperty (/rp, /regionproperty)
-- `add/a <region> <property>` - Adds property to the region.
-- `remove/r <region> <property>` - Remove property from the region.
-- `list/l [page]` - List available properties.
-- `info/i [page] [region]` - Info about property of the region
-- `helpproperty/hp <property> [page]` - Returns all info about given property.
-- `addcond/ac <region> <condition> <property>` - Adds condition to the property.
-- `removecond/rc <region> <condition> <property>` - Removes condition from the property.
-- `clear/c [region]` - Clears properties from the region.
-- `blockdoortoggle/bdt` - Block door toggle from server side.\
-Properties - certain rules by which the region exists and events change.\
-Example: By setting the property - /rp a $t ap\
-A player located in the region ($t) automatically turns on PvP mode and is not able to turn it off (property - ap/alwayspvp)\
-Conditions also work on properties, however not all properties are subject to them, and not all conditions will be valid for a property\
-Example: By setting the condition - /rp ac $t !a ap\
-The property will only affect players not added to the region.
-#### Available triggers.
-- `command/cmd <command>` - Command trigger.
-> There are constants for commands:
-> @r - replaced by the name of the region
-> @p - replaced by the player who activated trigger
-- `push/p` - Pushes player from region.
-- `packet/pa <int> [text] [data...]` - Send packet to the player.
-- `message/msg <text...>` - Send message to the player.
-- `spawnnpc/spawnmob/sn/sm <npc> [count] [x] [y] [health] [strength]` - Spawns npc.
-- `spawnproj/sp <projectile> [count] [damage] [knockback] [x] [y] [speedX] [speedY]` - Spawns projectile.
-- `giveitem/spawnitem/g/si <item> [stack] [prefix] [x] [y] [damage] [usetime] [projectile]` - Gives items to the player.
-- `tppos <x> <y>` - Teleports player to the position.
-- `warp <warp>` - Teleports player to the warp.
-- `kill/k` - Kills player.
-- `buff/b <buff> [time]` - Buffs player. Time in Seconds.
-- `pvp` - Changes player pvp mode.\
-In coordinates, you can set a function that is calculated when the trigger fires.\
-Example: The trigger is /rt a $t e g 1 1 0 px+1 py+1. Throws out an iron pick at the player's coordinates.\
-All available features:
-- `px, py` - will return the coordinate of the player who executed the trigger.
-- `cx, cy` - returns the coordinate of the left-upper corner of the region.
-- `w, h` - will return the width or height of the region.
-- `ri` - will return a random number from 0 to int.maxValue.
-- `rd` - will return a random number from 0 to 1.
-- `lx, ly` - will be replaced by the local coordinate of the player in the region that set the trigger.
-- `gx, gy` - will be replaced by the coordinate of the player who set the trigger.
-#### Available events
-- `onenter/enter/e` - Activates when player enters in region.
-- `onleave/leave/l` - Activates when player leaves from region.
-- `onin/in/i` - Activates while player in the region.
-- `onpvpon/pvpon` - Activates when players Pvp enabled.
-- `onpvpoff/pvpoff` - Activates when players Pvp disabled.\
-Update happens every half second
-#### Available conditions
-- `allowed/a`  - If player is allowed in the region.
-- `exact/e <count>` - If players count in the region.
-- `less/l <count>` - If less players in the region than count.
-- `more/m <count>` - If more players in the region than count.
-- `owner/o`  - If player is owner of the region.
-- `pause/p [time]` - Pauses trigger in given time after activation. Format: 0d0h0m0s
-- `playerpause/pp [time]` - Pauses trigger for player in given time after activation. Format: 0d0h0m0s
-- `delay/d [time] [flag]` - Activates the trigger only after the given time.
-- `playerdelay/pd [time] [flag]` - Activates the trigger only after the given time for the player.
-- `recheck/rc` - Rechecks the actual presence of the player in region.
-- `hasitem/hi <item>` - If player has item.
-> Flags - additional conditions under which the delay trigger is activated.
-> - `-f` - The trigger is activated at the end of the delay, regardless of the presence of a player in the region. Default.
-> - `-i` - The trigger is activated if the player is in the region at the end of the delay.
-> - `-a` - The trigger is activated if the player was in the region during the delay.
-#### Available properties
-- `alwayspvp/ap` - Activates player pvp and prevents trying to change it.
-- `banhostile/bh` - Removes any hostile NPCs and projectiles from region, and prevents bosses from entering the region.
-- `clearitems/ci` - Clears items from region.
-- `maxspawn/ms <ratio>` - Rewrite near NPCs count for players.
-> Property changes the number of NPCs calculated by the game by multiplying by a factor, thus allowing you to increase or decrease the actual spawning of NPCs near the player in the region. Example: If there are 10 NPCs near the player and the ratio is 0.5, then 10 NPCs will be counted as 5, increasing spawn, with 1.5 - 10 NPCs will be counted as 15, decreasing spawn. If set to 0, then NPCs around the player will not spawn.
-- `nopvp/np` - Deactivates player pvp and prevents trying to change it.
-- `spawnrewrite/sr <npcs...>` - Rewrites npc spawn in the region.
-> Only NPCs in the region are changed, regardless of the presence of the player or his position, the list is given in the format {Name or id}:{Weight} - where weight is the probability of a particular NPC appearing, relative to the weight of other entered NPCs. Example: With a list of 1:1 3:0.5 - 1 zombie will appear for every 2 slimes, or by probabilities 1/1.5 = 66% 0.5/1.5 = 33%. Default weight - 1
-- `projban/pb <projs...>` - Prevents projectile creation from player.
-- `itemban/ib <items...>` - Ban items in the region.
-#### Utils commands
-- `context` - Return all available context commands.
-- `reperm` - Returns all permissions used by Region Extension plugin.
-- `reloc` - Changes Region extension localization. Available EN/RU.
-- `triggerignore/ti` - Ignores any trigger and some property activation.
-## RU
-РџР»Р°РіРёРЅ РґРѕР±Р°РІР»СЏРµС‚ Р±РѕР»СЊС€Рµ РєРѕРјР°РЅРґ РґР»СЏ Р»СѓС‡С€РµРіРѕ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ СЂРµРіРёРѕРЅРѕРІ, С‚Р°РєР¶Рµ РґРѕР±Р°РІР»СЏРµС‚ РєРѕРЅС‚РµРєСЃС‚РЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹.
-### РљРѕРјР°РЅРґС‹
-#### RegionExt (/re, /region)
-Р’СЃРµ РєРѕРјР°РЅРґС‹ РёРЅС‚РµРіСЂРёСЂРѕРІР°РЅРЅС‹ СЃ /region, РІСЃРµ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Рµ РєРѕРјР°РЅРґС‹ С‚Р°РєР¶Рµ Р·Р°РјРµРЅРµРЅС‹ СЃРѕ СЃС‚РѕСЂРѕРЅС‹ РїР»Р°РіРёРЅР°.
-- `move/mv <regionname> <amount> <u/d/r/l>` - РџРµСЂРµРјРµС‰Р°РµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ СЂРµРіРёРѕРЅР° РІ СѓРєР°Р·Р°РЅРЅРѕРј РЅР°РїСЂР°РІР»РµРЅРёРё. u - РІРІРµСЂС…, d - РІРЅРёР·, r - РІРїСЂР°РІРѕ, l - РІР»РµРІРѕ.
-- `setowner/so [useraccount] [region]` - Р—Р°РґР°РµС‚ РЅРѕРІРѕРіРѕ РІР»Р°РґРµР»СЊС†Р° СЂРµРіРёРѕРЅР° (username) РґР»СЏ СѓРєР°Р·Р°РЅРѕРіРѕ СЂРµРіРёРѕРЅР°.
-- `clearmembers/cm [regionname]` - РћС‡РёС‰Р°РµС‚ СЃРїРёСЃРѕРє РІСЃРµС… РёРіСЂРѕРєРѕРІ, С‡С‚Рѕ РјРѕРіСѓС‚ СЃС‚СЂРѕРёС‚СЊ РІ СЂРµРіРёРѕРЅРµ.
-- `fastregion/fr <regionname> [ownername] [z] [protect]` - Р—Р°РґР°РµС‚ СЂРµРіРёРѕРЅ СЃ СѓРєР°Р·Р°РЅРЅС‹РјРё РїР°СЂР°РјРµС‚СЂР°РјРё Рё Р·Р°РїСЂР°С€РёРІР°РµС‚ С‚РѕС‡РєРё СЂРµРіРёРѕРЅР°. Р—РѕРЅСѓ РјРѕР¶РЅРѕ СѓРєР°Р·Р°С‚СЊ СЃ РїРѕРјРѕС‰СЊСЋ The Grand Design.
-- `frbreak` - РћС‚РјРµРЅСЏРµС‚ Р°РєС‚РёРІРЅС‹Р№ Р·Р°РїСЂРѕСЃ РЅР° Р±С‹СЃС‚СЂС‹Р№ СЂРµРіРёРѕРЅ (fastregion).
-- `ownerlist/ol [username] [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ СЂРµРіРёРѕРЅС‹ СЃ Р·Р°РґР°РЅРЅС‹Рј РІР»Р°РґРµР»СЊС†РµРј
-- `allowelist/al [username] [page]`, "РћС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ СЂРµРіРёРѕРЅС‹, РіРґРµ РґР°РЅРЅС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РґРѕР±Р°РІР»РµРЅ.
-- `contexts [page]` - РћС‚РѕР±СЂР°Р¶РµРЅРёРµ РІСЃРµС… РґРѕСЃС‚СѓРїРЅС‹С… РєРѕРЅС‚РµРєСЃС‚РЅС‹С… РєРѕРјР°РЅРґ.
-- `listact/la [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ СЂРµРіРёРѕРЅС‹ РІ РїРѕСЂСЏРґРєРµ Р°РєС‚РёРІРЅРѕСЃС‚Рё.
-- `listrequest/lr [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ Р°РєС‚РёРІРЅС‹Рµ Р·Р°РїСЂРѕСЃС‹.
-- `requestinfo/ri [region] [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ Р·Р°РїСЂРѕСЃРµ.
-- `requestaccept/ra [region]` - РџСЂРёРЅРёРјР°РµС‚ Р·Р°РїСЂРѕСЃ.
-- `requestdeny/rd [region]` - РћС‚РєР»РѕРЅСЏРµС‚ Р·Р°РїСЂРѕСЃ.\
-P.S. Р—Р°РїСЂРѕСЃС‹ РѕС‚РїСЂР°РІР»СЏСЋС‚СЃСЏ РѕС‚ РёРіСЂРѕРєР°, РєРѕС‚РѕСЂС‹Р№ СЃРѕР·РґР°РµС‚ СЂРµРіРёРѕРЅ С‡РµСЂРµР· РєРѕРјР°РЅРґС‹ /regionown, РёРіСЂРѕРє, РёРјРµСЋС‰РёР№ РґРѕСЃС‚СѓРї Рє РѕСЃРЅРѕРІРЅС‹Рј РєРѕРјР°РЅРґР°Рј, РґРѕР»Р¶РµРЅ РїРѕРґС‚РІРµСЂРґРёС‚СЊ Р·Р°РїСЂРѕСЃ, РёРЅР°С‡Рµ Р·Р°РїСЂРѕС€РµРЅРЅС‹Р№ СЂРµРіРёРѕРЅ Р±СѓРґРµС‚ СѓРґР°Р»РµРЅ СЃРѕРіР»Р°СЃРЅРѕ РЅР°СЃС‚СЂРѕР№РєР°Рј. 
-#### RegionOwn (/ro, /regionown)
-РљРѕРјР°РЅРґС‹ РґР»СЏ РІР»Р°РґРµР»СЊС†РµРІ СЂРµРіРёРѕРЅРѕРІ. РљРѕРјР°РЅРґС‹ РёРЅРґРµРЅС‚РёС‡РЅС‹ РѕСЃРЅРѕРІРЅС‹Рј, РѕРґРЅР°РєРѕ РІ РєР°Р¶РґРѕР№ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ СЏРІР»СЏРµС‚СЃСЏ Р»Рё РёРіСЂРѕРє РІР»Р°РґРµР»СЊС†РµРј СЂРµРіРёРѕРЅР°
-- `setowner/so [useraccount] [region]` - РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РІР»Р°РґРµР»СЊС†Р° СЂРµРіРёРѕРЅР°.
-- `clearmembers/cm [regionname]` - РЈРґР°Р»СЏРµС‚ РІСЃРµС… РёРіСЂРѕРєРѕРІ РёР· СЂРµРіРёРѕРЅР°.
-- `ownerlist/ol [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ СЂРµРіРёРѕРЅС‹, РІ РєРѕС‚РѕСЂС‹С… РІС‹ РІР»Р°РґРµР»РµС†.
-- `allow/a <useraccount> [region]` - Р”РѕР±Р°РІР»СЏРµС‚ РёРіСЂРѕРєР° РІ СЂРµРіРёРѕРЅ.
-- `remove/r <useraccount> [region]` - РЈРґР°Р»СЏРµС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР· СЂРµРіРёРѕРЅР°.
-- `info/i [region] [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЂРµРіРёРѕРЅРµ.
-- `set <1/2>` - РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚РѕС‡РєСѓ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ СЂРµРіРёРѕРЅР°.
-- `define/d <name>` - РЎРѕР·РґР°РµС‚ СЂРµРіРёРѕРЅ СЃ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹РјРё С‚РѕС‡РєР°РјРё Рё Р·Р°РґР°РЅРЅС‹Рј РёРјРµРЅРµРј, Рё РѕС‚РїСЂР°РІР»СЏРµС‚ Р·Р°РїСЂРѕСЃ.
-- `delete/del [region]` - РЈРґР°Р»СЏРµС‚ Р·Р°РґР°РЅРЅС‹Р№ СЂРµРіРёРѕРЅ.
-- `fastregion/fr <region>` - РЎРѕР·РґР°РµС‚ СЂРµРіРёРѕРЅ Рё Р·Р°РїСЂР°С€РёРІР°РµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅРёРµ С‚РѕС‡РµРє. РўР°РєР¶Рµ РѕС‚РїСЂР°РІР»СЏРµС‚ Р·Р°РїСЂРѕСЃ.
-- `fastregionbreak/frb` - РЈРґР°Р»СЏРµС‚ Р·Р°РїСЂРѕСЃ РЅР° Р±С‹СЃС‚СЂС‹Р№ СЂРµРіРёРѕРЅ.
-#### RegionHistory (/rh, /regiohistory)
-РљРѕРјР°РЅРґС‹ РґР»СЏ РёСЃС‚РѕСЂРёРё СЂРµРіРёРѕРЅРѕРІ.
-- `undo/u <count> [region]` - РћС‚РјРµРЅСЏРµС‚ РґРµР№СЃС‚РІРёРµ РЅР°Рґ СЂРµРіРёРѕРЅРѕРј.
-- `redo/r <count> [region]` - Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РґРµР№СЃС‚РІРёРµ РЅР°Рґ СЂРµРіРёРѕРЅРѕРј.
-- `restore/res <regionname>` - Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЂРµРіРёРѕРЅ РёР· СѓРґР°Р»РµРЅРЅС‹С….
-- `restoreuser/resu <user> [count]` - Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЂРµРіРёРѕРЅС‹ РёР· СѓРґР°Р»РµРЅРЅС‹С… РїРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ.
-- `history/h [page] [region]` - РџРѕР»СѓС‡Р°РµС‚ РІСЃСЋ РёСЃС‚РѕСЂРёСЋ РґРµР№СЃС‚РІРёР№ РЅР° СЂРµРіРёРѕРЅ.
-- `dellist/dl [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ СѓРґР°Р»РµРЅРЅС‹Рµ СЂРµРіРёРѕРЅС‹.\
-P.S. РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ Р±СѓС„С„РµСЂ РґР»СЏ СѓРґР°Р»РµРЅРЅС‹С… СЂРµРіРёРѕРЅРѕРІ - 64 Р·Р°РїРёСЃРё.
-#### RegionTrigger (/rt, /regiontrigger)
-РљРѕРјР°РЅРґС‹ РґР»СЏ С‚СЂРёРіРіРµСЂРѕРІ СЂРµРіРёРѕРЅРѕРІ.
-- `add/a <region> <event> <trigger>` - Р”РѕР±Р°РІР»СЏРµС‚ С‚СЂРёРіРіРµСЂ Рє СЂРµРіРёРѕРЅСѓ.
-- `delete/d <region> <id>` - РЈРґР°Р»СЏРµС‚ С‚СЂРёРіРіРµСЂ РёР· СЂРµРіРёРѕРЅР°.
-- `info/i [region] [page]` - РРЅС„РѕСЂРјР°С†РёСЏ Рѕ С‚СЂРёРіРіРµСЂР°С… РІ СЂРµРіРёРѕРЅРµ.
-- `list/l [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ С‚СЂРёРіРіРµСЂС‹.
-- `helptrigger/ht <trigger> [page]` - Р’РѕР·РІСЂР°С‰Р°РµС‚ РІСЃСЋ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚СЂРёРіРіРµСЂРµ.
-- `eventlist/el [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ.
-- `conditionlist/cl [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ СѓСЃР»РѕРІРёСЏ.
-- `addcond/ac <region> <condition> [ids...]` - Р”РѕР±Р°РІР»СЏРµС‚ СѓСЃР»РѕРІРёРµ Рє С‚СЂРёРіРіРµСЂСѓ СЂРµРіРёРѕРЅР°.
-- `removecond/rc <region> <condition> [ids...]` - СѓРґР°Р»СЏРµС‚ СѓСЃР»РѕРІРёРµ СЃ С‚СЂРёРіРіРµСЂР°.
-- `clear/c [region]` - РЈРґР°Р»СЏРµС‚ РІСЃРµ С‚СЂРёРіРіРµСЂС‹ РёР· СЂРµРіРёРѕРЅР°.
-- `pvp` - РџРµСЂРµРєР»СЋС‡Р°РµС‚ СЂРµР¶РёРј PvP РёРіСЂРѕРєР°.\
-РўСЂРёРіРіРµСЂ - РґРµР№СЃС‚РІРёРµ, СЃРѕРІРµСЂС€Р°СЋС‰РµРµСЃСЏ РїСЂРё Р·Р°РґР°РЅРЅРѕРј СЃРѕР±С‹С‚РёРё.\
-РџСЂРёРјРµСЂ: Р—Р°РґР°РІ С‚СЂРёРіРіРµСЂ /rt a $t e msg РџСЂРёРІРµС‚ РјРёСЂ!\
-РРіСЂРѕРєСѓ, РєРѕС‚РѕСЂС‹Р№ Р·Р°С€РµР» (СЃРѕР±С‹С‚РёРµ - e/enter) РІ СЂРµРіРёРѕРЅ ($t), РѕС‚РїСЂР°РІРёС‚СЃСЏ СЃРѕРѕР±С‰РµРЅРёРµ (РґРµР№СЃС‚РІРёРµ - msg/message) "РџСЂРёРІРµС‚ РјРёСЂ!".\
-РЈСЃР»РѕРІРёСЏ - СѓСЃР»РѕРІРёРµ РїСЂРё РєРѕС‚РѕСЂРѕРј С‚СЂРёРіРіРµСЂ СЃСЂР°Р±РѕС‚Р°РµС‚.\
-РџСЂРёРјРµСЂ: Р—Р°РґР°РІ СѓСЃР»РѕРІРёРµ /rt ac $t !a 0\
-РўСЂРёРіРіРµСЂ СЃРѕРѕР±С‰РµРЅРёСЏ, Р·Р°РґР°РЅРЅС‹Р№ РІ СЂРµРіРёРѕРЅРµ Рё РїРѕР»СѓС‡РёРІС€РёР№ id - 0 (СѓР·РЅР°РµС‚СЃСЏ РІ РєРѕРјР°РЅРґРµ /rt i), РѕС‚РїСЂР°РІРёС‚СЃСЏ С‚РѕР»СЊРєРѕ РёРіСЂРѕРєСѓ, РєРѕС‚РѕСЂС‹Р№ РЅРµ РґРѕР±Р°РІР»РµРЅ РІ СЂРµРіРёРѕРЅ (СѓСЃР»РѕРІРёРµ - a/allowed, ! РїРµСЂРµРґ РЅР°Р·РІР°РЅРёРµРј - РґРµР»Р°РµС‚ РІС‹РїРѕР»РЅРµРЅРёРµ СѓСЃР»РѕРІРёРµ РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅС‹Рј).\
-Р•СЃР»Рё Сѓ С‚СЂРёРіРіРµСЂР° Р±РѕР»СЊС€Рµ 1 СѓСЃР»РѕРІРёСЏ, РЅРµРѕР±С…РѕРґРёРјРѕ С‡С‚РѕР± РІСЃРµ СѓСЃР»РѕРІРёСЏ Р±С‹Р»Рё РІРµСЂРЅС‹РјРё РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ С‚СЂРёРіРіРµСЂР°.
-#### RegionProperty (/rp, /regionproperty)
-- `add/a <region> <property>` - Р”РѕР±Р°РІР»СЏРµС‚ СЃРІРѕР№СЃС‚РІРѕ СЂРµРіРёРѕРЅСѓ.
-- `remove/r <region> <property>` - РЈРґР°Р»СЏРµС‚ СЃРІРѕР№СЃС‚РІРѕ РёР· СЂРµРіРёРѕРЅР°.
-- `list/l [page]` - РџРµСЂРµС‡РёСЃР»СЏРµС‚ РІСЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ СЃРІРѕР№СЃС‚РІР°.
-- `info/i [page] [region]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРІРѕР№СЃС‚РІР°С… СЂРµРіРёРѕРЅР°.
-- `helpproperty/hp <property> [page]` - РћС‚РѕР±СЂР°Р¶Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРІРѕР№СЃС‚РІРµ.
-- `addcond/ac <region> <condition> <property>` - Р”РѕР±Р°РІР»СЏРµС‚ СѓСЃР»РѕРІРёРµ Рє СЃРІРѕР№СЃС‚РІСѓ СЂРµРіРёРѕРЅР°.
-- `removecond/rc <region> <condition> <property>` - РЈРґР°Р»СЏРµС‚ СѓСЃР»РѕРІРёРµ РёР· СЃРІРѕР№СЃС‚РІР°
-- `clear/c [region]` - РЈРґР°Р»СЏРµС‚ РІСЃРµ СЃРІРѕР№СЃС‚РІР° РёР· СЂРµРіРёРѕРЅР°.
-- `blockdoortoggle/bdt` - РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РґРІРµСЂРµР№ СЃРѕ СЃС‚РѕСЂРѕРЅС‹ СЃРµСЂРІРµСЂР°.\
-РЎРІРѕР№СЃС‚РІР° - РѕРїСЂРµРґРµР»РµРЅРЅС‹Рµ РїСЂР°РІРёР»Р° РїРѕ РєРѕС‚РѕСЂС‹Рј СЃСѓС‰РµСЃС‚РІСѓРµС‚ СЂРµРіРёРѕРЅ Рё РёР·РјРµРЅСЏСЋС‚СЃСЏ СЃРѕР±С‹С‚РёСЏ.\
-РџСЂРёРјРµСЂ: Р—Р°РґР°РІ СЃРІРѕР№СЃС‚РІРѕ - /rp a $t ap\
-РЈ РёРіСЂРѕРєР°, РЅР°С…РѕРґСЏС‰РµРіРѕСЃСЏ РІ СЂРµРіРёРѕРЅРµ ($t), Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РІРєР»СЋС‡Р°РµС‚СЃСЏ СЂРµР¶РёРј PvP Рё РѕРЅ РЅРµ СЃРїРѕСЃРѕР±РµРЅ РµРіРѕ РІС‹РєР»СЋС‡РёС‚СЊ (СЃРІРѕР№СЃС‚РІРѕ - ap/alwayspvp)\
-РЈСЃР»РѕРІРёСЏ С‚Р°РєР¶Рµ РґРµР№СЃС‚РІСѓСЋС‚ РЅР° СЃРІРѕР№СЃС‚РІР°, РѕРґРЅР°РєРѕ РЅРµ РІСЃРµ СЃРІРѕР№СЃС‚РІР° РїРѕРґРІРµСЂР¶РµРЅРЅС‹ РёРј, Рё РЅРµ РІСЃРµ СѓСЃР»РѕРІРёСЏ Р±СѓРґСѓС‚ РєРѕСЂСЂРµРєС‚РЅС‹ РґР»СЏ СЃРІРѕР№СЃС‚РІР°\
-РџСЂРёРјРµСЂ: Р—Р°РґР°РІ СѓСЃР»РѕРІРёРµ - /rp ac $t !a ap\
-РЎРІРѕР№СЃС‚РІРѕ Р±СѓРґРµС‚ РґРµР№СЃС‚РІРѕРІР°С‚СЊ С‚РѕР»СЊРєРѕ РЅР° РёРіСЂРѕРєРѕРІ, РЅРµ РґРѕР±Р°РІР»РµРЅРЅС‹С… РІ СЂРµРіРёРѕРЅ.
-#### Р”РѕСЃС‚СѓРїРЅС‹Рµ С‚СЂРёРіРіРµСЂС‹
-- `command/cmd <command>` - Р’С‹Р·С‹РІР°РµС‚ РєРѕРјР°РЅРґСѓ.
-> РџСЂРёСЃСѓС‚СЃС‚РІСѓСЋС‚ РєРѕРЅСЃС‚Р°РЅС‚С‹ РґР»СЏ РєРѕРјР°РЅРґ:
-> @r - Р·Р°РјРµРЅРёС‚СЃСЏ РЅР° РЅР°Р·РІР°РЅРёРµ СЂРµРіРёРѕРЅР°
-> @p - Р·Р°РјРµРЅРёС‚СЃСЏ РЅР° РёРіСЂРѕРєР°, Р°РєС‚РёРІРёСЂРѕРІР°РІС€РµРіРѕ С‚СЂРёРіРіРµСЂ
-- `push/p` - Р’С‹С‚Р°Р»РєРёРІР°РµС‚ РёРіСЂРѕРєР° РёР· СЂРµРіРёРѕРЅР°.
-- `packet/pa <int> [text] [data...]` - РћС‚РїСЂР°РІР»СЏРµС‚ РїР°РєРµС‚ РёРіСЂРѕРєСѓ.
-- `message/msg <text...>` - РћС‚РїСЂР°РІР»СЏРµС‚ СЃРѕРѕР±С‰РµРЅРёРµ РёРіСЂРѕРєСѓ.
-- `spawnnpc/spawnmob/sn/sm <npc> [count] [x] [y] [health] [strength]` - РџСЂРёР·С‹РІР°РµС‚ РќРРџР°.
-- `spawnproj/sp <projectile> [count] [damage] [knockback] [x] [y] [speedX] [speedY]` - РЎРїР°РІРЅРёС‚ СЃРЅР°СЂСЏРґ.
-- `giveitem/spawnitem/g/si <item> [stack] [prefix] [x] [y] [damage] [usetime] [projectile]` - Р”Р°РµС‚ РїСЂРµРґРјРµС‚ РёРіСЂРѕРєСѓ.
-- `tppos <x> <y>` - РўРµР»РµРїРѕСЂС‚РёСЂСѓРµС‚ РёРіСЂРѕРєР° РЅР° РїРѕР·РёС†РёСЋ.
-- `warp <warp>` - РўРµР»РµРїРѕСЂС‚РёСЂСѓРµС‚ РёРіСЂРѕРєР° РЅР° РІР°СЂРї.
-- `kill/k` - РЈР±РёРІР°РµС‚ РёРіСЂРѕРєР°.
-- `buff/b <buff> [time]` - Р‘Р°С„С„Р°РµС‚ РёРіСЂРѕРєР°. Р’СЂРµРјСЏ РІ СЃРµРєСѓРЅРґР°С….\
-Р’ РєРѕРѕСЂРґРёРЅР°С‚Р°С… РјРѕР¶РЅРѕ Р·Р°РґР°С‚СЊ С„СѓРЅРєС†РёСЋ, РєРѕС‚РѕСЂР°СЏ РїСЂРѕСЃС‡РёС‚С‹РІР°РµС‚СЃСЏ РєРѕРіРґР° СЃСЂР°Р±Р°С‚С‹РІР°РµС‚ С‚СЂРёРіРіРµСЂ.\
-РџСЂРёРјРµСЂ: РўСЂРёРіРіРµСЂ - /rt a $t e g 1 1 0 px+1 py+1. Р’С‹РєРёРЅРµС‚ Р¶РµР»РµР·РЅСѓСЋ РєРёСЂРєСѓ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј РёРіСЂРѕРєР°.\
-Р’СЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ С„СѓРЅРєС†РёРё:
-- `px, py` - РІРµСЂРЅРµС‚ РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёРіСЂРѕРєР°, РІС‹РїРѕР»РЅРёРІС€РµРіРѕ С‚СЂРёРіРіРµСЂ.
-- `cx, cy` - РІРµСЂРЅРµС‚ РєРѕРѕСЂРґРёРЅР°С‚Сѓ Р»РµРІРѕРіРѕ-РІРµСЂС…РЅРµРіРѕ СѓРіР»Р° СЂРµРіРёРѕРЅР°.
-- `w, h` - РІРµСЂРЅРµС‚ С€РёСЂРёРЅСѓ РёР»Рё РІС‹СЃРѕС‚Сѓ СЂРµРіРёРѕРЅР°.
-- `ri` - РІРµСЂРЅРµС‚ СЃР»СѓС‡Р°Р№РЅРѕРµ С‡РёСЃР»Рѕ РѕС‚ 0 РґРѕ int.maxValue.
-- `rd` - РІРµСЂРЅРµС‚ СЃР»СѓС‡Р°Р№РЅРѕРµ С‡РёСЃР»Рѕ РѕС‚ 0 РґРѕ 1.
-- `lx, ly` - Р·Р°РјРµРЅРёС‚СЃСЏ РЅР° Р»РѕРєР°Р»СЊРЅСѓСЋ РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёРіСЂРѕРєР° РІ СЂРµРіРёРѕРЅРµ, Р·Р°РґР°РІС€РµРіРѕ С‚СЂРёРіРіРµСЂ.
-- `gx, gy` - Р·Р°РјРµРЅРёС‚СЃСЏ РЅР° РєРѕРѕСЂРґРёРЅР°С‚Сѓ РёРіСЂРѕРєР°, Р·Р°РґР°РІС€РµРіРѕ С‚СЂРёРіРіРµСЂ.
-#### Р”РѕСЃС‚СѓРїРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ
-- `onenter/enter/e` - РђРєС‚РёРІРёСЂСѓРµС‚СЃСЏ РєРѕРіРґР° РёРіСЂРѕРє Р·Р°С…РѕРґРёС‚ РІ СЂРµРіРёРѕРЅ.
-- `onleave/leave/l` - РђРєС‚РёРІРёСЂСѓРµС‚СЃСЏ РєРѕРіРґР° РёРіСЂРѕРє РІС‹С…РѕРґРёС‚ РёР· СЂРµРіРёРѕРЅР°.
-- `onin/in/i` - РђРєС‚РёРІРёСЂСѓРµС‚СЃСЏ РїРѕРєР° РёРіСЂРѕРє РЅР°С…РѕРґРёС‚СЃСЏ РІ СЂРµРіРёРѕРЅРµ.
-- `onpvpon/pvpon` - РђРєС‚РёРІРёСЂСѓРµС‚СЃСЏ РєРѕРіРґР° РІРєР»СЋС‡Р°РµС‚СЃСЏ СЂРµР¶РёРј РџРІРї РёРіСЂРѕРєР°.
-- `onpvpoff/pvpoff` - РђРєС‚РёРІРёСЂСѓРµС‚СЃСЏ РєРѕРіРґР° РѕС‚РєР»СЋС‡Р°РµС‚СЃСЏ СЂРµР¶РёРј РџРІРї РёРіСЂРѕРєР°.\
-РћР±РЅРѕРІР»РµРЅРёРµ РїСЂРѕРёСЃС…РѕРґРёС‚ РєР°Р¶РґС‹Рµ РїРѕР» СЃРµРєСѓРЅРґС‹
-#### Р”РѕСЃС‚СѓРїРЅС‹Рµ СѓСЃР»РѕРІРёСЏ 
-- `allowed/a`  - Р•СЃР»Рё РёРіСЂРѕРє РґРѕР±Р°РІР»РµРЅ РІ СЂРµРіРёРѕРЅ.
-- `exact/e <count>` - Р•СЃР»Рё РёРіСЂРѕРєРѕРІ РІ СЂРµРіРёРѕРЅРµ - Р·Р°РґР°РЅРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ.
-- `less/l <count>` - Р•СЃР»Рё РёРіСЂРѕРєРѕРІ РІ СЂРµРіРёРѕРЅРµ РјРµРЅСЊС€Рµ Р·Р°РґР°РЅРЅРѕРіРѕ РєРѕР»РёС‡РµСЃС‚РІР°.
-- `more/m <count>` - Р•СЃР»Рё РёРіСЂРѕРєРѕРІ РІ СЂРµРіРёРѕРЅРµ Р±РѕР»СЊС€Рµ Р·Р°РґР°РЅРЅРѕРіРѕ РєРѕР»РёС‡РµСЃС‚РІР°.
-- `owner/o`  - Р•СЃР»Рё РёРіСЂРѕРє - РІР»Р°РґРµР»РµС† СЂРµРіРёРѕРЅР°.
-- `pause/p [time]` - РћСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚СЂРёРіРіРµСЂ РЅР° Р·Р°РґР°РЅРЅРѕРµ РІСЂРµРјСЏ. Р¤РѕСЂРјР°С‚: 0d0h0m0s
-- `playerpause/pp [time]` - РћСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚СЂРёРіРіРµСЂ РЅР° Р·Р°РґР°РЅРЅРѕРµ РІСЂРµРјСЏ РґР»СЏ РёРіСЂРѕРєР°. Р¤РѕСЂРјР°С‚: 0d0h0m0s
-- `delay/d [time] [flag]` - РђРєС‚РёРІРёСЂСѓРµС‚ С‚СЂРёРіРіРµСЂ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ Р·Р°РґР°РЅРЅРѕРіРѕ РІСЂРµРјРµРЅРё.
-- `playerdelay/pd [time] [flag]` - РђРєС‚РёРІРёСЂСѓРµС‚ С‚СЂРёРіРіРµСЂ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ Р·Р°РґР°РЅРЅРѕРіРѕ РІСЂРµРјРµРЅРё РґР»СЏ РёРіСЂРѕРєР°.
-- `recheck/rc` - РџРµСЂРµРїСЂРѕРІРµСЂСЏРµС‚ РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕРµ РЅР°Р»РёС‡РёРµ РёРіСЂРѕРєР° РІ СЂРµРіРёРѕРЅРµ.
-- `hasitem/hi <item>` - Р•СЃР»Рё Сѓ РёРіСЂРѕРєР° РµСЃС‚СЊ РїСЂРµРґРјРµС‚.
-> Р¤Р»Р°РіРё - РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СѓСЃР»РѕРІРёСЏ РїСЂРё РєРѕС‚РѕСЂРѕРј С‚СЂРёРіРіРµСЂ Р·Р°РґРµСЂР¶РєРё Р°РєС‚РёРІРёСЂСѓРµС‚СЃСЏ.
-> - `-f` - РўСЂРёРіРіРµСЂ Р°РєС‚РёРІРёСЂСѓРµС‚СЃСЏ РїРѕ РѕРєРѕРЅС‡Р°РЅРёСЋ Р·Р°РґРµСЂР¶РєРё РЅРµР·Р°РІРёСЃРёРјРѕ РѕС‚ РЅР°Р»РёС‡РёСЏ РёРіСЂРѕРєР° РІ СЂРµРіРёРѕРЅРµ. РЎС‚Р°РЅРґР°СЂС‚РЅС‹Р№.
-> - `-i` - РўСЂРёРіРіРµСЂ Р°РєС‚РёРІРёСЂСѓРµС‚СЃСЏ РµСЃР»Рё РёРіСЂРѕРє РІ РјРѕРјРµРЅС‚ РѕРєРѕРЅС‡Р°РЅРёСЏ Р·Р°РґРµСЂР¶РєРё РЅР°С…РѕРґРёС‚СЃСЏ РІ СЂРµРіРёРѕРЅРµ.
-> - `-a` - РўСЂРёРіРіРµСЂ Р°РєС‚РёРІРёСЂСѓРµС‚СЃСЏ РµСЃР»Рё РёРіСЂРѕРє РІСЃС‘ РІСЂРµРјСЏ Р·Р°РґРµСЂР¶РєРё РЅР°С…РѕРґРёР»СЃСЏ РІ СЂРµРіРёРѕРЅРµ.
-####  Р”РѕСЃС‚СѓРїРЅС‹Рµ СЃРІРѕР№СЃС‚РІР°
-- `alwayspvp/ap` - Р’РєР»СЋС‡Р°РµС‚ СЂРµР¶РёРј PvP РёРіСЂРѕРєР° Рё РїСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РµРіРѕ РёР·РјРµРЅРµРЅРёРµ.
-- `banhostile/bh` - РЈРґР°Р»СЏРµС‚ РІСЃРµС… РІСЂР°Р¶РґРµР±РЅС‹С… РќРРџРѕРІ Рё СЃРЅР°СЂСЏРґС‹, С‚Р°РєР¶Рµ РЅРµ РїРѕР·РІРѕР»СЏРµС‚ Р±РѕСЃСЃСѓ Р·Р°Р№С‚Рё РІ СЂРµРіРёРѕРЅ.
-- `clearitems/ci` - Р§РёСЃС‚РёС‚ РїСЂРµРґРјРµС‚С‹ РёР· СЂРµРіРёРѕРЅР°.
-- `maxspawn/ms <ratio>` - РџРµСЂРµРїРёСЃС‹РІР°РµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ РќРРџРѕРІ РІРѕР·Р»Рµ РёРіСЂРѕРєР°.
-> Р”Рµ-С„Р°РєС‚Рѕ СЃРІРѕР№СЃС‚РІРѕ РёР·РјРµРЅСЏРµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ РќРРџРѕРІ РїСЂРѕСЃС‡РёС‚Р°РЅРЅРѕРµ РёРіСЂРѕР№, СѓРјРЅРѕР¶Р°СЏ РЅР° РєРѕСЌС„С„РёС†РёРµРЅС‚, С‚РµРј СЃР°РјС‹Рј РїРѕР·РІРѕР»СЏСЏ СѓРІРµР»РёС‡РёС‚СЊ РёР»Рё СѓРјРµРЅСЊС€РёС‚СЊ С„Р°РєС‚РёС‡РµСЃРєРѕРµ РїРѕСЏРІР»РµРЅРёРµ РќРРџРѕРІ РІРѕРєСЂСѓРі РёРіСЂРѕРєР° РІ СЂРµРіРёРѕРЅРµ. РџСЂРёРјРµСЂ: Р•СЃР»Рё РІРѕРєСЂСѓРі РёРіСЂРѕРєР° 10 РќРРџРѕРІ Рё РєРѕСЌС„С„РёС†РёРµРЅС‚ - 0.5, С‚Рѕ 10 РЅРёРїРѕРІ Р±СѓРґСѓС‚ СЃС‡РёС‚Р°С‚СЊСЃСЏ РєР°Рє 5, СѓРІРµР»РёС‡РёРІР°СЏ РїРѕСЏРІР»РµРЅРёРµ, РїСЂРё 1.5 - Р°РЅР°Р»РѕРіРёС‡РЅРѕ 10 РќРРџРѕРІ Р±СѓРґСѓС‚ СЃС‡РёС‚Р°С‚СЊСЃСЏ РєР°Рє 15, СѓРјРµРЅСЊС€Р°СЏ РїРѕСЏРІР»РµРЅРёРµ. Р•СЃР»Рё Р·Р°РґР°РЅРѕ 0, С‚Рѕ РќРРџС‹ РІРѕРєСЂСѓРі РёРіСЂРѕРєР° РїРѕСЏРІР»СЏС‚СЊСЃСЏ РЅРµ Р±СѓРґСѓС‚.
-- `nopvp/np` - Р’С‹РєР»СЋС‡Р°РµС‚ СЂРµР¶РёРј PvP РёРіСЂРѕРєР° Рё РїСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РµРіРѕ РёР·РјРµРЅРµРЅРёРµ.
-- `spawnrewrite/sr <npcs...>` - РР·РјРµРЅСЏРµС‚ РµСЃС‚РµСЃС‚РІРµРЅРЅРѕРµ РїРѕСЏРІР»РµРЅРёРµ РќРРџРѕРІ РІ СЂРµРіРёРѕРЅРµ.
-> РР·РјРµРЅСЏСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РќРРџС‹ РІ СЂРµРіРёРѕРЅРµ, РЅРµР·Р°РІРёСЃРёРјРѕ РѕС‚ РЅР°Р»РёС‡РёСЏ РёРіСЂРѕРєР° РёР»Рё РµРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ, СЃРїРёСЃРѕРє Р·Р°РґР°РµС‚СЃСЏ РІ С„РѕСЂРјР°С‚Рµ {РРјСЏ РёР»Рё id}:{Р’РµСЃ} - РіРґРµ РІРµСЃ, СЌС‚Рѕ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЊ РїРѕСЏРІР»РµРЅРёСЏ РєРѕРЅРєСЂРµС‚РЅРѕРіРѕ РќРРџР°, РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РІРµСЃР° РґСЂСѓРіРёС… РІРїРёСЃР°РЅРЅС‹С… РќРРџРѕРІ. РџСЂРёРјРµСЂ: РџСЂРё СЃРїРёСЃРєРµ 1:1 3:0.5 - РЅР° РєР°Р¶РґС‹С… 2-С… СЃР»Р°Р№РјРѕРІ Р±СѓРґРµС‚ РїРѕСЏРІР»СЏС‚СЊСЃСЏ 1 Р·РѕРјР±Рё РёР»Рё РїРѕ РІРµСЂРѕСЏС‚РЅРѕСЃС‚СЏРј 1/1.5 = 66% 0.5/1.5 = 33%. РЎС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РІРµСЃ - 1
-- `projban/pb <projs...>` - РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ СЃРЅР°СЂСЏРґР° РёРіСЂРѕРєРѕРј.
-- `itemban/ib <items...>` - РџСЂРµРґРѕС‚РІСЂР°С‰Р°РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РїСЂРµРґРјРµС‚Р° РёРіСЂРѕРєРѕРј.
-#### Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РєРѕРјР°РЅРґС‹
-- `context` - РѕС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ РґРѕСЃС‚СѓРїРЅС‹Рµ РєРѕРЅС‚РµРєСЃС‚РЅС‹Рµ РєРѕРјР°РЅРґС‹.
-- `reperm` - РѕС‚РѕР±СЂР°Р¶Р°РµС‚ РІСЃРµ РїСЂРёРІРёР»РµРіРёРё РїР»Р°РіРёРЅР°.
-- `reloc` - РёР·РјРµРЅСЏРµС‚ Р»РѕРєР°Р»РёР·Р°С†РёСЋ РїР»Р°РіРёРЅР°. Р”РѕСЃС‚СѓРїРЅС‹ EN/RU.
-- `triggerignore/ti` - РёРіРЅРѕСЂРёСЂСѓРµС‚ С‚СЂРёРіРіРµСЂС‹ Рё РЅРµРєРѕС‚РѕСЂС‹Рµ СЃРІРѕР№СЃС‚РІР°.
-### РљРѕРЅС‚РµРєСЃС‚
-РљРѕРЅС‚РµРєСЃС‚ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РґР»СЏ Р±С‹СЃС‚СЂРѕРіРѕ РІРІРѕРґР° РєРѕРјР°РЅРґ Р±РµР· РїРѕРёСЃРєР° РЅРµРѕР±С…РѕРґРёРјС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ.
-- `$this/$t` - Р±РµСЂРµС‚ РёРјСЏ СЂРµРіРёРѕРЅР° РІ РєРѕС‚РѕСЂРѕРј РЅР°С…РѕРґРёС‚СЃСЏ РёРіСЂРѕРє.
-- `$myname/$mn` - Р±РµСЂРµС‚ РёРјСЏ Р°РєРєР°СѓРЅС‚Р° РёРіСЂРѕРєР°.
-- `$near/$n` - РїРѕР»СѓС‡Р°РµС‚ РёРјСЏ Р±Р»РёР¶Р°Р№С€РµРіРѕ РёРіСЂРѕРєР°.
 
-РџСЂРёРјРµСЂ: /region info $this. Р’РµСЂРЅРµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЂРµРіРёРѕРЅРµ, РІ РєРѕС‚РѕСЂРѕРј РЅР°С…РѕРґРёС‚СЃСЏ РёРіСЂРѕРє.
-### Permission/РџСЂРёРІРёР»РµРіРёРё
-- `tshock.admin.region` - /regionext /re /region
-- `regionext.own` - /regionown /ro
-- `regionext.history` - /regionhistory /ri
-- `regionext.trigger` - /regiontrigger /rt
-- `regionext.property` - /regionproperty /rp
-- `regionext.trigger.ignore` - /triggerignore /ti
-- `regionext.trigger.sendpacket` - sendpacket/sp
-- `regionext.trigger.message` - message/msg
-- `regionext.trigger.push` - push/p
-- `regionext.trigger.command` - command/cmd
-- `regionext.trigger.warp` - warp
-- `regionext.trigger.spawnnpc` - spawnnpc/spawnmob/sn/sm
-- `regionext.trigger.giveitem` - giveitem/spawnitem/g/si
-- `regionext.trigger.tppos` - tppos
-- `regionext.trigger.spawnproj` - spawnproj/sp
-- `regionext.trigger.kill` - kill/k
-- `regionext.trigger.buff` - buff/b
-- `regionext.trigger.pvp` - pvp
-- `regionext.property.pvp` - alwayspvp/ap nopvp/np
-- `regionext.property.banhostile` - banhostile/bh
-- `regionext.property.spawnrewrite` - spawnrewrite/sr
-- `regionext.property.projban` - projban/pb
-- `regionext.property.itemban` - itemban/ib
-- `regionext.property.maxspawn` - maxspawn/m
-- `regionext.property.blocktileframe` - blocktileframe/btf
-- `regionext.property.blockdoortoggle` - blockdoortoggle/bdt
+Плагин добавляет расширенные команды и механику для работы с регионами в TShock, а также поддерживает контекстные параметры команд.
+
+## Команды
+
+### RegionExt (`/re`, `/regionext`, `/region`)
+Все команды интегрированы с `/region`, стандартные регион-команды заменяются обработкой плагина.
+
+- `move/mv <regionname> <amount> <u/d/r/l>` - Перемещает регион с указанным именем в заданном направлении.
+- `setowner/so [useraccount] [region]` - Назначает владельца региона.
+- `clearmembers/cm [regionname]` - Удаляет всех участников региона.
+- `fastregion/fr <regionname> [ownername] [z] [protect]` - Создаёт регион с параметрами и запрашивает две точки.
+- `frbreak` - Отменяет активный запрос `fastregion`.
+- `ownerlist/ol [username] [page]` - Показывает регионы, где указанный игрок владелец.
+- `allowedlist/al [username] [page]` - Показывает регионы, где указанный игрок добавлен.
+- `listact/la [page]` - Список последних активных регионов.
+- `listrequest/lr [page]` - Список всех заявок на регионы.
+- `requestinfo/ri [region] [page]` - Информация о заявке на регион.
+- `requestaccept/ra [region]` - Подтвердить заявку.
+- `requestdeny/rd [region]` - Отклонить заявку.
+
+Примечание: заявки отправляются игроком через `/regionown`. Игрок с доступом к основным командам должен подтвердить заявку, иначе регион будет удалён по настройкам.
+
+### RegionOwn (`/ro`, `/regionown`)
+Команды для владельцев регионов. По смыслу похожи на основные, но в каждой есть проверка, что игрок действительно владелец.
+
+- `setowner/so [useraccount] [region]` - Назначить владельца региона.
+- `clearmembers/cm [regionname]` - Удалить всех участников региона.
+- `ownerlist/ol [page]` - Список ваших регионов.
+- `allow/a <useraccount> [region]` - Добавить игрока в регион.
+- `remove/r <useraccount> [region]` - Удалить игрока из региона.
+- `info/i [region] [page]` - Информация о регионе.
+- `set <1/2>` - Установить временную точку региона.
+- `define/d <name>` - Создать регион с заданным именем и отправить заявку.
+- `delete/del [region]` - Удалить регион.
+- `fastregion/fr <region>` - Быстрое создание региона по двум точкам с отправкой заявки.
+- `fastregionbreak/frb` - Отменить активный fastregion-запрос.
+
+### RegionHistory (`/rh`, `/regionhistory`)
+История изменений регионов.
+
+- `undo/u <count> [region]` - Отменить действия над регионом.
+- `redo/r <count> [region]` - Повторить отменённые действия.
+- `restore/res <regionname>` - Восстановить удалённый регион.
+- `restoreuser/resu <user> [count]` - Восстановить удалённые регионы указанного пользователя.
+- `history/h [page] [region]` - Показать историю региона.
+- `dellist/dl [page]` - Список удалённых регионов.
+
+Примечание: максимум записей удалённых регионов в буфере - 64.
+
+### RegionTrigger (`/rt`, `/regiontrigger`)
+Команды триггеров регионов.
+
+- `add/a <region> <event> <trigger>` - Добавить триггер в регион.
+- `delete/d <region> <id>` - Удалить триггер из региона.
+- `info/i [region] [page]` - Информация о триггерах региона.
+- `list/l [page]` - Список доступных триггеров.
+- `helptrigger/ht <trigger> [page]` - Подробная справка по триггеру.
+- `eventlist/el [page]` - Список доступных событий.
+- `conditionlist/cl [page]` - Список условий.
+- `addcond/ac <region> <condition> [ids...]` - Добавить условие триггерам.
+- `removecond/rc <region> <condition> [ids...]` - Удалить условие у триггеров.
+- `clear/c [region]` - Удалить все триггеры региона.
+
+Триггер - это действие, выполняемое при событии.
+
+Пример:
+- `/rt a $t e msg Hello world!`
+- Игроку, который вошёл в регион (`e/enter`), отправится сообщение `Hello world!`.
+
+Условия определяют, когда триггер может сработать.
+
+Пример:
+- `/rt ac $t !a 0`
+- Триггер с id `0` сработает только для игрока, который не добавлен в регион (`!a`).
+
+Если у триггера несколько условий, все они должны быть истинны.
+
+### RegionProperty (`/rp`, `/regionproperty`)
+Команды свойств региона.
+
+- `add/a <region> <property>` - Добавить свойство в регион.
+- `remove/r <region> <property>` - Удалить свойство из региона.
+- `list/l [page]` - Список доступных свойств.
+- `info/i [page] [region]` - Информация о свойствах региона.
+- `helpproperty/hp <property> [page]` - Подробная справка по свойству.
+- `addcond/ac <region> <condition> <property>` - Добавить условие к свойству.
+- `removecond/rc <region> <condition> <property>` - Удалить условие у свойства.
+- `clear/c [region]` - Удалить все свойства региона.
+- `blockdoortoggle/bdt` - Блокировать переключение дверей на стороне сервера.
+
+Свойства задают постоянные правила поведения региона.
+
+Пример:
+- `/rp a $t ap`
+- У игроков в регионе автоматически включается PvP и его нельзя выключить (`ap/alwayspvp`).
+
+Условия также работают и для свойств (с ограничениями по совместимости).
+
+Пример:
+- `/rp ac $t !a ap`
+- Свойство будет действовать только на игроков, не добавленных в регион.
+
+## Доступные триггеры
+
+- `command/cmd <command>` - Выполнить команду.
+  - `@r` - будет заменено на имя региона.
+  - `@p` - будет заменено на имя игрока, активировавшего триггер.
+- `push/p` - Вытолкнуть игрока из региона.
+- `packet/pa <int> [text] [data...]` - Отправить пакет игроку.
+- `message/msg <text...>` - Отправить сообщение игроку.
+- `spawnnpc/spawnmob/sn/sm <npc> [count] [x] [y] [health] [strength]` - Заспавнить NPC.
+- `spawnproj/sp <projectile> [count] [damage] [knockback] [x] [y] [speedX] [speedY]` - Заспавнить снаряд.
+- `giveitem/spawnitem/g/si <item> [stack] [prefix] [x] [y] [damage] [usetime] [projectile]` - Выдать предмет игроку.
+- `tppos <x> <y>` - Телепортировать игрока в позицию.
+- `warp <warp>` - Телепортировать игрока на варп.
+- `kill/k` - Убить игрока.
+- `buff/b <buff> [time]` - Выдать бафф (время в секундах).
+- `pvp` - Переключить PvP игрока.
+
+В координатах можно использовать функции, вычисляемые в момент срабатывания.
+
+Пример:
+- `/rt a $t e g 1 1 0 px+1 py+1`
+- Выдаст предмет в координатах относительно игрока.
+
+Доступные функции:
+- `px, py` - координаты игрока, активировавшего триггер.
+- `cx, cy` - координаты левого верхнего угла региона.
+- `w, h` - ширина и высота региона.
+- `ri` - случайное число от `0` до `int.MaxValue`.
+- `rd` - случайное число от `0` до `1`.
+- `lx, ly` - локальные координаты игрока в регионе, где задан триггер.
+- `gx, gy` - координаты игрока, который задал триггер.
+
+## Доступные события
+
+- `onenter/enter/e` - Игрок входит в регион.
+- `onleave/leave/l` - Игрок выходит из региона.
+- `onin/in/i` - Игрок находится в регионе.
+- `onpvpon/pvpon` - Игрок включил PvP.
+- `onpvpoff/pvpoff` - Игрок выключил PvP.
+
+Обновление проверок: раз в 0.5 секунды.
+
+## Доступные условия
+
+- `allowed/a` - Игрок добавлен в регион.
+- `exact/e <count>` - Точное число игроков в регионе.
+- `less/l <count>` - Игроков меньше, чем `<count>`.
+- `more/m <count>` - Игроков больше, чем `<count>`.
+- `owner/o` - Игрок владелец региона.
+- `pause/p [time]` - Пауза между срабатываниями. Формат: `0d0h0m0s`.
+- `playerpause/pp [time]` - Пауза между срабатываниями для конкретного игрока.
+- `delay/d [time] [flag]` - Отложенное срабатывание.
+- `playerdelay/pd [time] [flag]` - Отложенное срабатывание для игрока.
+- `recheck/rc` - Перепроверка фактического нахождения игрока в регионе.
+- `hasitem/hi <item>` - У игрока есть указанный предмет.
+
+Флаги `delay`:
+- `-f` - срабатывание по окончании задержки независимо от игрока (по умолчанию);
+- `-i` - срабатывание, если игрок в регионе в конце задержки;
+- `-a` - срабатывание, если игрок находился в регионе в течение всей задержки.
+
+## Доступные свойства
+
+- `alwayspvp/ap` - Включает PvP и запрещает его изменение.
+- `banhostile/bh` - Удаляет враждебных NPC/снаряды и не пускает боссов в регион.
+- `clearitems/ci` - Удаляет предметы из региона.
+- `maxspawn/ms <ratio>` - Меняет расчёт nearby NPC для игрока.
+  - Пример: если рядом 10 NPC и `ratio=0.5`, игра учитывает их как 5 (спавна будет больше). При `1.5` учитывает как 15 (спавна будет меньше). При `0` спавн рядом отключается.
+- `nopvp/np` - Выключает PvP и запрещает его изменение.
+- `spawnrewrite/sr <npcs...>` - Переписывает естественный спавн NPC в регионе.
+  - Формат: `{NameOrId}:{Weight}`. Вес задаёт вероятность относительно остальных NPC в списке.
+- `projban/pb <projs...>` - Запрещает использование снарядов игроком.
+- `itemban/ib <items...>` - Запрещает использование предметов игроком.
+
+## Вспомогательные команды
+
+- `context` - Список контекстных команд.
+- `reperm` - Список всех permissions плагина.
+- `reloc` - Смена локализации (`EN`/`RU`).
+- `triggerignore/ti` - Игнорирование триггеров и части свойств.
+
+## Контекст
+
+Контекстные параметры ускоряют ввод команд.
+
+- `$this/$t` - имя текущего региона игрока.
+- `$myname/$mn` - имя аккаунта игрока.
+- `$near/$n` - имя ближайшего игрока.
+
+Пример:
+- `/region info $this`
+
+## Permissions
+
+- `tshock.admin.region` - `/regionext /re /region`
+- `regionext.own` - `/regionown /ro`
+- `regionext.history` - `/regionhistory /rh`
+- `regionext.trigger` - `/regiontrigger /rt`
+- `regionext.property` - `/regionproperty /rp`
+- `regionext.trigger.ignore` - `/triggerignore /ti`
+- `regionext.trigger.sendpacket` - `sendpacket/sp`
+- `regionext.trigger.message` - `message/msg`
+- `regionext.trigger.push` - `push/p`
+- `regionext.trigger.command` - `command/cmd`
+- `regionext.trigger.warp` - `warp`
+- `regionext.trigger.spawnnpc` - `spawnnpc/spawnmob/sn/sm`
+- `regionext.trigger.giveitem` - `giveitem/spawnitem/g/si`
+- `regionext.trigger.tppos` - `tppos`
+- `regionext.trigger.spawnproj` - `spawnproj/sp`
+- `regionext.trigger.kill` - `kill/k`
+- `regionext.trigger.buff` - `buff/b`
+- `regionext.trigger.pvp` - `pvp`
+- `regionext.property.pvp` - `alwayspvp/ap`, `nopvp/np`
+- `regionext.property.banhostile` - `banhostile/bh`
+- `regionext.property.spawnrewrite` - `spawnrewrite/sr`
+- `regionext.property.projban` - `projban/pb`
+- `regionext.property.itemban` - `itemban/ib`
+- `regionext.property.maxspawn` - `maxspawn/ms`
+- `regionext.property.blocktileframe` - `blocktileframe/btf`
+- `regionext.property.blockdoortoggle` - `blockdoortoggle/bdt`
+
 ## Config
-```
+
+```json
 {
-  "ContextSpecifier": "$", //Start symbol for context/РќР°С‡Р°Р»СЊРЅС‹Р№ СЃРёРјРІРѕР» РґР»СЏ РєРѕРЅС‚РµРєСЃС‚РЅС‹С… РїР°СЂР°РјРµС‚СЂРѕРІ.
-  "ContextAllow": true, //Allows/disallow use context/Р Р°Р·СЂРµС€Р°РµС‚/Р·Р°РїСЂРµС‰Р°РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РєРѕРЅС‚РµРєСЃС‚Р°.
-  "AutoCompleteSameName": true, //Use autonaming on region define/РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р°РІС‚Рѕ РёРјСЏ РєРѕРіРґР° РёРіСЂРѕРє РѕР±СЉСЏРІР»СЏРµС‚ СЂРµРіРёРѕРЅ.
-  "AutoCompleteSameNameFormat": "{0}:{1}", //Name format {0}-name {1}-num/Р¤РѕСЂРјР°С‚ РёРјРµРЅРё - {0}-РёРјСЏ {1}-С‡РёСЃР»Рѕ
-  "NotificationPeriod": "10m", //Notification period for requests format: 0d0h0m0s/РџРµСЂРёРѕРґ РѕРїРѕРІРµС‰РµРЅРёСЏ Рѕ Р·Р°РїСЂРѕСЃР°С…
-  "DefaultLocalization": "EN", //Default localization for commands/РЎС‚Р°РЅРґР°СЂС‚РЅР°СЏ Р»РѕРєР°Р»РёР·Р°С†РёСЏ РґР»СЏ РєРѕРјР°РЅРґ
-  "BannedTriggerCommands": [ //Banned commands for trigger/Р—Р°РїСЂРµС‰РµРЅРЅС‹Рµ РєРѕРјР°РЅРґС‹ РґР»СЏ С‚СЂРёРіРіРµСЂРѕРІ
+  "ContextSpecifier": "$",                // Начальный символ контекста
+  "ContextAllow": true,                     // Разрешить использование контекста
+  "AutoCompleteSameName": true,             // Автодобавление суффикса к одинаковым именам
+  "AutoCompleteSameNameFormat": "{0}:{1}",// Формат имени: {0}=имя, {1}=номер
+  "NotificationPeriod": "10m",             // Период уведомлений о заявках
+  "DefaultLocalization": "EN",             // Локализация по умолчанию
+  "BannedTriggerCommands": [
     "group",
     "user"
   ],
   "RequestSettings": [
     {
-      "GroupName": "default", //Used group/РСЃРїРѕР»СЊР·СѓРµРјР°СЏ РіСЂСѓРїРїР°
-      "MaxRequestCount": 3, //Max requests by player/ РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїСЂРѕС€РµРЅРЅС‹С… СЂРµРіРёРѕРЅРѕРІ
-      "RequestTime": "3d", //Time on which region will be deleted or approved/Р’СЂРµРјСЏ Р·Р° РєРѕС‚РѕСЂРѕРµ СЂРµРіРёРѕРЅ Р±СѓРґРµС‚ СѓРґР°Р»РµРЅ РёР»Рё РїРѕРґС‚РІРµСЂР¶РґРµРЅ
-      "AutoApproveRequest": false, //Approve region on time end or delete/РџРѕРґС‚РІРµСЂР¶РґР°С‚СЊ СЂРµРіРёРѕРЅ РїРѕ РѕРєРѕРЅС‡Р°РЅРёСЋ РІСЂРµРјРµРЅРЅРѕРіРѕ РїСЂРѕРјРµР¶СѓС‚РєР° РёР»Рё СѓРґР°Р»СЏС‚СЊ.
-      "MaxRequestArea": 10000, //Max area (width*height) of requested region/РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ РїР»РѕС‰Р°РґСЊ (С€РёСЂРёРЅР°*РІС‹СЃРѕС‚Р°) Р·Р°РїСЂРѕС€РµРЅРЅРѕРіРѕ СЂРµРіРёРѕРЅР°
-      "MaxRequestHeight": 100, //Max height of requested region/РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ РІС‹СЃРѕС‚Р° Р·Р°РїСЂРѕС€РµРЅРЅРѕРіРѕ СЂРµРіРёРѕРЅР°.
-      "MaxRequestWidth": 100, //Max Width of requested region/РњР°РєСЃРёРјР°Р»СЊРЅР°СЏ С€РёСЂРёРЅР° Р·Р°РїСЂРѕС€РµРЅРЅРѕРіРѕ СЂРµРіРёРѕРЅР°.
-      "ProtectRequestedRegion": true, //Protect requested region/Р—Р°С‰РёС‚Р° Р·Р°РїСЂРѕС€РµРЅРЅС‹С… СЂРµРіРёРѕРЅРѕРІ.
-      "DefaultRequestZ": 0 //Default requested region order/РЎС‚Р°РЅРґР°СЂС‚РЅС‹Р№ РїСЂРёРѕСЂРёС‚РµС‚ Р·Р°РїСЂРѕС€РµРЅРЅРѕРіРѕ СЂРµРіРёРѕРЅР°
+      "GroupName": "default",
+      "MaxRequestCount": 3,
+      "RequestTime": "3d",
+      "AutoApproveRequest": false,
+      "MaxRequestArea": 10000,
+      "MaxRequestHeight": 100,
+      "MaxRequestWidth": 100,
+      "ProtectRequestedRegion": true,
+      "DefaultRequestZ": 0
     },
     {
       "GroupName": "superadmin",
-      "MaxRequestCount": 0, //0 - infinite/Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
-      "RequestTime": "0s", //0 - infinite/Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
+      "MaxRequestCount": 0,
+      "RequestTime": "0s",
       "AutoApproveRequest": true,
-      "MaxRequestArea": 0, //0 - infinite/Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
-      "MaxRequestHeight": 0, //0 - infinite/Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
-      "MaxRequestWidth": 0, //0 - infinite/Р±РµСЃРєРѕРЅРµС‡РЅРѕСЃС‚СЊ
+      "MaxRequestArea": 0,
+      "MaxRequestHeight": 0,
+      "MaxRequestWidth": 0,
       "ProtectRequestedRegion": true,
-      "DefaultRequestZ": 0 
+      "DefaultRequestZ": 0
     }
   ]
 }
