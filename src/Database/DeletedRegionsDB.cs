@@ -1,17 +1,14 @@
 using Terraria;
 using MonoMod;
 using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.Relational;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TShockAPI;
 using TShockAPI.DB;
-using TShockAPI.DB.Queries;
 using TShockAPI.Hooks;
 
 namespace RegionExtension.Database
@@ -49,9 +46,7 @@ namespace RegionExtension.Database
 
         public void InitializeTable()
         {
-            IQueryBuilder queryCreator = _database.GetSqlType() == SqlType.Sqlite ?
-                                            new SqliteQueryBuilder() : new MysqlQueryBuilder();
-            var creator = new SqlTableCreator(_database, queryCreator);
+            var creator = new SqlTableCreator(_database, QueryBuilderFactory.Create(_database));
             creator.EnsureTableStructure(_table);
             LoadRegions();
         }

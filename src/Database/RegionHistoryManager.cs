@@ -6,11 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TShockAPI.DB;
-using TShockAPI.DB.Queries;
 using TShockAPI;
 using RegionExtension.Database.Actions;
 using TShockAPI.Hooks;
-using System.Data.SqlTypes;
 
 namespace RegionExtension.Database
 {
@@ -40,9 +38,7 @@ namespace RegionExtension.Database
 
         public void InitializeTable()
         {
-            IQueryBuilder queryCreator = _database.GetSqlType() == SqlType.Sqlite ?
-                                            new SqliteQueryBuilder() : new MysqlQueryBuilder();
-            var creator = new SqlTableCreator(_database, queryCreator);
+            var creator = new SqlTableCreator(_database, QueryBuilderFactory.Create(_database));
             creator.EnsureTableStructure(_table);
         }
 

@@ -6,8 +6,6 @@ using Terraria;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
-using TShockAPI.DB.Queries;
-using System.Data.SqlTypes;
 
 namespace RegionExtension.Database
 {
@@ -35,9 +33,7 @@ namespace RegionExtension.Database
 
         public void InitializeTable()
         {
-            IQueryBuilder queryCreator = _database.GetSqlType() == SqlType.Sqlite ?
-                                            new SqliteQueryBuilder() : new MysqlQueryBuilder();
-            var creator = new SqlTableCreator(_database, queryCreator);
+            var creator = new SqlTableCreator(_database, QueryBuilderFactory.Create(_database));
             creator.EnsureTableStructure(_table);
         }
 

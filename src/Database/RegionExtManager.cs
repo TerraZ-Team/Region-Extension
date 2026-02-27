@@ -1,11 +1,9 @@
 using System;
-using System.Data;
 using System.Collections.Generic;
-using System.IO;
+using System.Data;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
-using MySql.Data.MySqlClient;
 using TerrariaApi.Server;
 using TShockAPI.Hooks;
 using RegionExtension.Commands;
@@ -13,8 +11,6 @@ using RegionExtension.Commands.Parameters;
 using RegionExtension.Database.Actions;
 using RegionExtension.Database.EventsArgs;
 using System.Linq;
-using Steamworks;
-using TShockAPI.Configuration;
 using Microsoft.Xna.Framework;
 using RegionExtension.RegionTriggers;
 
@@ -22,7 +18,9 @@ namespace RegionExtension.Database
 {
     public class RegionExtManager
     {
-        private IDbConnection _tshockDatabase;
+        private readonly IDbConnection _tshockDatabase;
+        private readonly DatabaseRepositoryFactory _databaseRepositoryFactory;
+        private IDbConnection _regionDatabase;
         private RegionInfoManager _regionInfoManager;
         private RegionHistoryManager _historyManager;
         private DeletedRegionsDB _deletedRegionsDB;
@@ -59,66 +57,49 @@ namespace RegionExtension.Database
         public TriggerManager TriggerManager { get; private set; }
         public PropertyManager PropertyManager { get; private set; }
 
-        public RegionExtManager(IDbConnection db)
+        public RegionExtManager(IDbConnection db, DatabaseRepositoryFactory databaseRepositoryFactory = null)
         {
-            _tshockDatabase = db;
+            _tshockDatabase = db ?? throw new ArgumentNullException(nameof(db));
+            _databaseRepositoryFactory = databaseRepositoryFactory ?? new DatabaseRepositoryFactory();
             EventHandler();
         }
 
-        public void InitializeDatabase(TerrariaPlugin plugin)
+        private bool InitializeDatabase(TerrariaPlugin plugin)
         {
-            IDbConnection database;
-            if (TShock.Config.Settings.StorageType.ToLower() == "sqlite")
+            try
             {
-                string sql = Path.Combine(TShock.SavePath, "RegionExtension.sqlite");
-                Directory.CreateDirectory(Path.GetDirectoryName(sql));
-                database = new Microsoft.Data.Sqlite.SqliteConnection(string.Format("Data Source={0}", sql));
+                _regionDatabase?.Dispose();
+                _regionDatabase = _databaseRepositoryFactory.CreateConnection(TShock.Config.Settings, TShock.SavePath);
+                _regionInfoManager = new RegionInfoManager(_regionDatabase);
+                TShock.Log.Info("Info manager loaded.");
+                _historyManager = new RegionHistoryManager(_regionDatabase);
+                TShock.Log.Info("History manager loaded.");
+                _deletedRegionsDB = new DeletedRegionsDB(_regionDatabase);
+                TShock.Log.Info("Deleted region database loaded.");
+                _regionRequestManager = new RegionRequestManager(_regionDatabase);
+                TShock.Log.Info("Request manager loaded.");
+                TriggerManager = new TriggerManager(_regionDatabase);
+                TShock.Log.Info("Trigger manager loaded.");
+                PropertyManager = new PropertyManager(_regionDatabase, plugin);
+                TShock.Log.Info("Property manager loaded.");
+                OnPostInitialize?.Invoke(_regionDatabase);
+                _fullyLoaded = true;
+                TShock.Log.Info("Region extension manager fully loaded!");
+                return true;
             }
-            else if (TShock.Config.Settings.StorageType.ToLower() == "mysql")
+            catch (Exception ex)
             {
-                try
-                {
-                    var hostport = TShock.Config.Settings.MySqlHost.Split(':');
-                    database = new MySqlConnection();
-                    database.ConnectionString =
-                        String.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
-                            hostport[0],
-                            hostport.Length > 1 ? hostport[1] : "3306",
-                            TShock.Config.Settings.MySqlDbName,
-                            TShock.Config.Settings.MySqlUsername,
-                            TShock.Config.Settings.MySqlPassword
-                            );
-                }
-                catch
-                {
-                    throw new Exception("MySql not setup correctly");
-                }
+                _fullyLoaded = false;
+                TShock.Log.Error($"[RegionExt] Failed to initialize database layer: {ex}");
+                return false;
             }
-            else
-            {
-                throw new Exception("Invalid storage type");
-            }
-            _regionInfoManager = new RegionInfoManager(database);
-            TShock.Log.Info("Info manager loaded.");
-            _historyManager = new RegionHistoryManager(database);
-            TShock.Log.Info("History manager loaded.");
-            _deletedRegionsDB = new DeletedRegionsDB(database);
-            TShock.Log.Info("Deleted region database loaded.");
-            _regionRequestManager = new RegionRequestManager(database);
-            TShock.Log.Info("Request manager loaded.");
-            TriggerManager = new TriggerManager(database);
-            TShock.Log.Info("Trigger manager loaded.");
-            PropertyManager = new PropertyManager(database, plugin);
-            TShock.Log.Info("Property manager loaded.");
-            if (OnPostInitialize != null)
-                OnPostInitialize(database);
-            _fullyLoaded = true;
-            TShock.Log.Info("Region extension manager fully loaded!");
         }
 
         public void PostInitialize(TerrariaPlugin plugin)
         {
-            InitializeDatabase(plugin);
+            if (!InitializeDatabase(plugin))
+                return;
+
             _regionInfoManager.PostInitialize();
         }
 
@@ -184,6 +165,9 @@ namespace RegionExtension.Database
             OnRegionDeleted = null;
             OnRequestRemoved = null;
             OnRegionDefined = null;
+            OnPostInitialize = null;
+            _regionDatabase?.Dispose();
+            _regionDatabase = null;
         }
 
         public void RegisterAction(IAction action, BaseRegionArgs args)
@@ -423,6 +407,12 @@ namespace RegionExtension.Database
 
         internal void Reload(ReloadEventArgs e)
         {
+            if (!_fullyLoaded || TriggerManager == null || PropertyManager == null)
+            {
+                TShock.Log.Warn("[RegionExt] Reload skipped: database layer is not initialized.");
+                return;
+            }
+
             TriggerManager.Reload(e);
             PropertyManager.Reload(e);
         }
