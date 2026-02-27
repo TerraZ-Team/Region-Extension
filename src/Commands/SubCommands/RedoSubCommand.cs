@@ -45,7 +45,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void RedoActions(CommandArgsExtension args, int count, Region region)
         {
-            PluginState.RegionExtensionManager.HistoryManager.Redo(count, region.ID);
+            args.Context.RegionManager.HistoryManager.Redo(count, region.ID);
             args.Player.SendSuccessMessage("Redo success.");
         }
 

@@ -12,7 +12,7 @@ namespace RegionExtension.Commands
     {
         private static IEnumerable<Command> ReplacedCommands;
         private static CommandExtension[] AddedCommands;
-        public static void InitializeCommands(Plugin plugin, params CommandExtension[] commands)
+        public static void InitializeCommands(Plugin plugin, PluginContext context, params CommandExtension[] commands)
         {
             var replaced = new List<Command>();
             AddedCommands = commands;
@@ -26,7 +26,7 @@ namespace RegionExtension.Commands
                 TShockAPI.Commands.ChatCommands.Add(
                     new Command(
                     command.Permissions.ToList(),
-                    args => command.InitializeCommand(new CommandArgsExtension(args, plugin)),
+                    args => command.InitializeCommand(new CommandArgsExtension(args, plugin, context)),
                     command.Names)
                     { HelpText = command.HelpText });
             }
@@ -35,8 +35,8 @@ namespace RegionExtension.Commands
                     Permissions.TriggerIgnore,
                     args =>
                     {
-                        PluginState.TriggerIgnores[args.Player.Index] = !PluginState.TriggerIgnores[args.Player.Index];
-                        args.Player.SendInfoMessage("Trigger ignore is " + (PluginState.TriggerIgnores[args.Player.Index] ? "activated!" : "disabled!"));
+                        context.TriggerIgnores[args.Player.Index] = !context.TriggerIgnores[args.Player.Index];
+                        args.Player.SendInfoMessage("Trigger ignore is " + (context.TriggerIgnores[args.Player.Index] ? "activated!" : "disabled!"));
                     },
                     "triggerignore", "ti")
                     { HelpText = "Ignores any trigger and some property activation." });
@@ -66,7 +66,7 @@ namespace RegionExtension.Commands
                     new Command(
                     args =>
                     {
-                        var loc = args.Parameters.Count > 0 ? args.Parameters[0].ToUpper() : PluginState.Config.DefaultLocalization;
+                        var loc = args.Parameters.Count > 0 ? args.Parameters[0].ToUpper() : context.Config.DefaultLocalization;
                         if(!Localization.Languages.ContainsKey(loc))
                         {
                             args.Player.SendErrorMessage("Invalid language '{0}'! Available localizations: {1}".SFormat(loc, string.Join(" ", Localization.Languages.Select(p => p.Key))));

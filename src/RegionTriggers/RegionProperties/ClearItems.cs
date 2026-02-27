@@ -20,7 +20,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         public ICommandParam[] CommandParams => new ICommandParam[0];
         public Region[] DefinedRegions => _regions.Keys.ToArray();
 
-        private Dictionary<Region, List<IRegionCondition>> _regions = new Dictionary<Region, List<IRegionCondition>>();
+        private Dictionary<Region, List<IRegionCondition>> _regions = new Dictionary<Region, List<IRegionCondition>>(RegionIdComparer.Instance);
         private DateTime _lastUpdate;
 
         public void InitializeEventHandler(TerrariaPlugin plugin)

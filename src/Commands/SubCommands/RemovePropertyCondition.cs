@@ -35,7 +35,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void RemoveRegionProperty(CommandArgsExtension args, Region region, IRegionCondition condition, PropertyFormer former)
         {
-            if (PluginState.RegionExtensionManager.PropertyManager.RemoveRegionCondition(region, former.Name, former.Params, condition))
+            if (args.Context.RegionManager.PropertyManager.RemoveRegionCondition(region, former.Name, former.Params, condition))
                 args.Player.SendSuccessMessage("Property condition removed!");
             else
                 args.Player.SendErrorMessage("Failed remove some conditions!");

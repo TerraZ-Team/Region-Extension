@@ -41,22 +41,17 @@ namespace RegionExtension.Database
 
         public bool AddRequest(Region region, UserAccount user)
         {
-            try
+            return DbSafe.Execute("Add region request", () =>
             {
                 var variablesString = string.Join(", ", _table.Columns.Select(c => c.Name));
                 _database.Query($"INSERT INTO {_table.Name} ({variablesString}) VALUES (@0, @1, @2, @3);",
                     region.ID,
                     Main.worldID.ToString(),
                     user.ID,
-                    DateTime.UtcNow.ToString());
+                    DateTimeCodec.FormatUtc(DateTime.UtcNow));
                 Requests.Add(new Request(region, user, DateTime.UtcNow));
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
         private bool UpdateQuery(IDbConnection db, string table, string column, string value, int RegionId)
@@ -75,7 +70,7 @@ namespace RegionExtension.Database
 
         public void LoadInfo()
         {
-            try
+            DbSafe.Execute("Load region requests", () =>
             {
                 using (var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE WorldID=@0", Main.worldID.ToString()))
                 {
@@ -85,36 +80,27 @@ namespace RegionExtension.Database
                         UserAccount user = TShock.UserAccounts.GetUserAccountByID(reader.Get<int>(TableInfo.UserID.ToString()));
                         if (region == null || user == null)
                             continue;
-                        DateTime date = DateTime.Parse(reader.Get<string>(TableInfo.DateCreation.ToString()));
+                        DateTime date = DateTimeCodec.Parse(reader.Get<string>(TableInfo.DateCreation.ToString()));
                         _requests.Add(new Request(region, user, date));
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-            }
+            });
         }
 
         public bool DeleteRequest(Region region)
         {
-            try
+            return DbSafe.Execute("Delete region request", () =>
             {
                 _database.Query($"DELETE FROM {_table.Name} WHERE RegionId=@0", region.ID);
                 _requests.RemoveAll(r => r.Region.ID == region.ID);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
-        public IEnumerable<string> GetSortedRegionRequestsNames() =>
+        public IEnumerable<string> GetSortedRegionRequestsNames(ConfigFile config) =>
             Requests.Select(r =>
                             {
-                                var time = StringTime.FromString(Utils.GetSettingsByUserAccount(r.User).RequestTime);
+                                var time = StringTime.FromString(Utils.GetSettingsByUserAccount(config, r.User).RequestTime);
                                 var endTime = r.DateCreation + time;
                                 var str = time.IsZero() ? $"[c/fffffff:{r.Region.Name}]" :
                                                         Utils.GetGradientByDateTime(r.Region.Name, r.DateCreation, endTime);
@@ -146,9 +132,9 @@ namespace RegionExtension.Database
         public UserAccount User { get; set; }
         public DateTime DateCreation { get; set; }
 
-        public IEnumerable<string> GetInfoStrings()
+        public IEnumerable<string> GetInfoStrings(ConfigFile config)
         {
-            var settings = Utils.GetSettingsByUserAccount(User);
+            var settings = Utils.GetSettingsByUserAccount(config, User);
             var requestTime = (DateCreation + StringTime.FromString(settings.RequestTime)).ToString(Utils.DateFormat);
             return new string[]
             {

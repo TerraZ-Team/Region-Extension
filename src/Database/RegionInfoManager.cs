@@ -44,7 +44,7 @@ namespace RegionExtension.Database
 
         private void LoadRegions()
         {
-            try
+            DbSafe.Execute("Load region info", () =>
             {
                 using(var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE WorldId=@0", Main.worldID.ToString()))
                 {
@@ -53,9 +53,9 @@ namespace RegionExtension.Database
                         RegionsInfo.Add(new RegionExtensionInfo(
                                             reader.Get<int>(TableInfo.Id.ToString()),
                                             reader.Get<int>(TableInfo.LastUser.ToString()),
-                                            DateTime.Parse(reader.Get<string>(TableInfo.DateCreation.ToString())),
-                                            DateTime.Parse(reader.Get<string>(TableInfo.LastUpdate.ToString())),
-                                            DateTime.Parse(reader.Get<string>(TableInfo.LastActivity.ToString()))));
+                                            DateTimeCodec.Parse(reader.Get<string>(TableInfo.DateCreation.ToString())),
+                                            DateTimeCodec.Parse(reader.Get<string>(TableInfo.LastUpdate.ToString())),
+                                            DateTimeCodec.Parse(reader.Get<string>(TableInfo.LastActivity.ToString()))));
                     }
                 }
                 foreach(var region in TShock.Regions.Regions)
@@ -65,16 +65,12 @@ namespace RegionExtension.Database
                         AddNewRegion(region.ID, GetOwnerIdOrDefault(region.Owner));
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-            }
+            });
         }
 
         public bool AddNewRegion(int id, int userId)
         {
-            try
+            return DbSafe.Execute("Add region info", () =>
             {
                 using(var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE Id=@0", id))
                 {
@@ -85,47 +81,28 @@ namespace RegionExtension.Database
                 _database.Query($"INSERT INTO {_table.Name} ({variablesString}) VALUES (@0, @1, @2, @3, @4, @5);",
                     id,
                     Main.worldID,
-                    DateTime.UtcNow.ToString(),
+                    DateTimeCodec.FormatUtc(DateTime.UtcNow),
                     userId,
-                    DateTime.UtcNow.ToString(),
-                    DateTime.UtcNow.ToString());
+                    DateTimeCodec.FormatUtc(DateTime.UtcNow),
+                    DateTimeCodec.FormatUtc(DateTime.UtcNow));
                 RegionsInfo.Add(new RegionExtensionInfo(id, userId));
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
-        public bool RemoveRegion(int id)
-        {
-            try
+        public bool RemoveRegion(int id) =>
+            DbSafe.Execute("Remove region info", () =>
             {
                 _database.Query($"DELETE FROM {_table.Name} WHERE Id=@0", id);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-        }
+            });
 
-        public bool UpdateQuery(IDbConnection db, string table, string collumn, string value, int id)
-        {
-            try
+        public bool UpdateQuery(IDbConnection db, string table, string collumn, string value, int id) =>
+            DbSafe.Execute("Update region info", () =>
             {
                 db.Query($"UPDATE {table} SET {collumn}=@0 WHERE Id=@1", value, id);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-        }
+            });
 
         public bool UpdateLastUser(int id, int userId)
         {
@@ -146,7 +123,7 @@ namespace RegionExtension.Database
             if (info == null)
                 return false;
             info.LastUpdate = time;
-            return UpdateQuery(_database, _table.Name, TableInfo.LastUpdate.ToString(), time.ToString(), id);
+            return UpdateQuery(_database, _table.Name, TableInfo.LastUpdate.ToString(), DateTimeCodec.FormatUtc(time), id);
         }
 
         public bool UpdateLastUpdate(Region region, DateTime time) =>
@@ -158,7 +135,7 @@ namespace RegionExtension.Database
             if (info == null)
                 return false;
             info.LastActivity = time;
-            return UpdateQuery(_database, _table.Name, TableInfo.LastActivity.ToString(), time.ToString(), id);
+            return UpdateQuery(_database, _table.Name, TableInfo.LastActivity.ToString(), DateTimeCodec.FormatUtc(time), id);
         }
 
         public bool UpdateLastActivity(Region region, DateTime time) =>

@@ -34,7 +34,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void SendRequestInfo(CommandArgsExtension args, int page, Region region)
         {
-            var request = PluginState.RegionExtensionManager.RegionRequestManager.Requests.FirstOrDefault(r => r.Region.ID == region.ID);
+            var request = args.Context.RegionManager.RegionRequestManager.Requests.FirstOrDefault(r => r.Region.ID == region.ID);
             if(request == null)
             {
                 args.Player.SendInfoMessage($"Region {region.Name} dont have request.");
@@ -43,7 +43,7 @@ namespace RegionExtension.Commands.SubCommands
             var usedName = args.Message.Split(' ')[0];
             var usedSubCommandName = args.Parameters[0];
             PaginationTools.SendPage(
-                args.Player, page, request.GetInfoStrings().ToList(), new PaginationTools.Settings
+                args.Player, page, request.GetInfoStrings(args.Context.Config).ToList(), new PaginationTools.Settings
                 {
                     HeaderFormat = string.Format("Information About Request \"{0}\" ({{0}}/{{1}}):", region.Name),
                     FooterFormat = string.Format("Type {0}{1} {2} {3} {{0}} for more information.", TShockAPI.Commands.Specifier, usedName, usedSubCommandName, region.Name)

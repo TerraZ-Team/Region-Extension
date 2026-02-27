@@ -25,7 +25,7 @@ namespace RegionExtension.Commands.SubCommands
         public override void Execute(CommandArgsExtension args)
         {
             var regionname = (string)Params[0].Value;
-            if (!Utils.TryAutoComplete((string)Params[0].Value, out regionname))
+            if (!Utils.TryAutoComplete(args.Context.Config, (string)Params[0].Value, out regionname))
             {
                 args.Player.SendErrorMessage("Region '{0}' already exist!".SFormat(regionname));
                 return;
@@ -35,7 +35,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void CreateFastRegionRequest(CommandArgsExtension args, string regionName, UserAccount username)
         {
-            PluginState.FastRegions.Add(new FastRegion(args.Player, regionName, username.Name, 0, true, true));
+            args.Context.FastRegions.Add(new FastRegion(args.Context, args.Player, regionName, username.Name, 0, true, true));
         }
     }
 }

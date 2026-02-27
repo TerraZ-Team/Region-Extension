@@ -32,7 +32,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void RemoveRegionProperty(CommandArgsExtension args, Region region, PropertyFormer former)
         {
-            if (PluginState.RegionExtensionManager.PropertyManager.RemoveRegionProperties(region, former.Name, former.Params))
+            if (args.Context.RegionManager.PropertyManager.RemoveRegionProperties(region, former.Name, former.Params))
                 args.Player.SendSuccessMessage("Property removed!");
             else
                 args.Player.SendErrorMessage("Failed remove property!");

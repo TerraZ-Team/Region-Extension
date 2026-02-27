@@ -16,11 +16,11 @@ namespace RegionExtension
         public static Plugin Plugin { get { return _plugin; } }
         private static Plugin _plugin;
 
-        public static void Initialize(Plugin plugin)
+        public static void Initialize(Plugin plugin, PluginContext context)
         {
             _plugin = plugin;
 
-            InitializeCommands(plugin,
+            InitializeCommands(plugin, context,
                 new RegionExtensionCommand(),
                 new RegionOwnCommand(),
                 new RegionHistoryCommand(),
@@ -29,9 +29,9 @@ namespace RegionExtension
                 );
         }
 
-        public static void InitializeCommands(this Plugin plugin, params CommandExtension[] commands)
+        public static void InitializeCommands(this Plugin plugin, PluginContext context, params CommandExtension[] commands)
         {
-            CommandsInitializer.InitializeCommands(plugin, commands);
+            CommandsInitializer.InitializeCommands(plugin, context, commands);
         }
 
         public static void Dispose()

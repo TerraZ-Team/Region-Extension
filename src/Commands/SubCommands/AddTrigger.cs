@@ -37,7 +37,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region, RegionEvents regionEvent, ITriggerAction triggerAction)
         {
-            if (PluginState.RegionExtensionManager.TriggerManager.CreateTrigger(region, regionEvent, triggerAction))
+            if (args.Context.RegionManager.TriggerManager.CreateTrigger(region, regionEvent, triggerAction))
                 args.Player.SendSuccessMessage("Trigger added!");
             else
                 args.Player.SendErrorMessage("Failed add trigger!");

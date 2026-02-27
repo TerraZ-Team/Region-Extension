@@ -47,7 +47,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void MoveRegion(CommandArgsExtension args, Region region, int z)
         {
-            if (PluginState.RegionExtensionManager.SetZ(args, region, z))
+            if (args.Context.RegionManager.SetZ(args, region, z))
                 args.Player.SendSuccessMessage("Region priority setted.");
             else
                 args.Player.SendErrorMessage("Failed set region priority.");

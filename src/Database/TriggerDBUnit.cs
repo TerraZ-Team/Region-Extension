@@ -50,7 +50,7 @@ namespace RegionExtension.Database
             {
                 { typeof(string), (s, r) => r.Get<string>(s)},
                 { typeof(int), (s, r) => r.Get<int>(s) },
-                { typeof(DateTime), (s, r) => DateTime.Parse(r.Get<string>(s)) }
+                { typeof(DateTime), (s, r) => DateTimeCodec.Parse(r.Get<string>(s)) }
             };
             var properties = typeof(TriggerDBUnit).GetProperties().Where(p => types.ContainsKey(p.PropertyType));
             foreach (var property in properties)

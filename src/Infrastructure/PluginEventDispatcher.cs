@@ -18,15 +18,17 @@ namespace RegionExtension.Infrastructure
     internal sealed class PluginEventDispatcher
     {
         private readonly Plugin _plugin;
+        private readonly PluginContext _context;
         private readonly object _lastActiveLock = new object();
         private bool _checkingHasBuild;
         private bool _handlingItemDrop;
         private List<Point16> _lastActive = new List<Point16>();
         private DateTime _lastActiveCheck = DateTime.UtcNow;
 
-        public PluginEventDispatcher(Plugin plugin)
+        public PluginEventDispatcher(Plugin plugin, PluginContext context)
         {
             _plugin = plugin;
+            _context = context;
         }
 
         public void Register()
@@ -42,7 +44,7 @@ namespace RegionExtension.Infrastructure
             PlayerHooks.PlayerPostLogin += OnPlayerLogin;
             PlayerHooks.PlayerCommand += OnPlayerCommand;
             PlayerHooks.PlayerHasBuildPermission += OnHasPlayerPermission;
-            PluginState.RegionExtensionManager = new RegionExtManager(TShock.DB);
+            _context.RegionManager = new RegionExtManager(TShock.DB, context: _context);
         }
 
         public void Deregister()
@@ -64,8 +66,9 @@ namespace RegionExtension.Infrastructure
         {
             try
             {
-                PluginState.Config = ConfigFile.Read();
-                PluginState.RegionExtensionManager?.Reload(e);
+                _context.Config = ConfigFile.Read();
+                Localization.DefaultLocalization = _context.Config.DefaultLocalization;
+                _context.RegionManager?.Reload(e);
                 DelayManager.Reload(_plugin);
                 e.Player?.SendInfoMessage("[RegionExt] Config and triggers reloaded.");
             }
@@ -79,7 +82,7 @@ namespace RegionExtension.Infrastructure
         private void OnSendItemDrop(SendDataEventArgs args)
         {
             var id = args.number;
-            var rewrites = PluginState.ItemRewrites;
+            var rewrites = ItemRewriteRegistry.Rewrites;
             if (id >= Main.maxItems || rewrites[id] == null || !rewrites[id].Active)
                 return;
 
@@ -126,21 +129,23 @@ namespace RegionExtension.Infrastructure
 
         private void OnGreetPlayer(GreetPlayerEventArgs args)
         {
-            PluginState.RegionExtensionManager?.TriggerManager?.OnPlayerEnter(args);
-            PluginState.TriggerIgnores[args.Who] = false;
+            _context.RegionManager?.TriggerManager?.OnPlayerEnter(args);
+            _context.TriggerIgnores[args.Who] = false;
         }
 
         private void OnPostUpdate(EventArgs args)
         {
-            PluginState.RegionExtensionManager?.Update();
+            _context.RegionManager?.Update();
             UpdateLastActive();
         }
 
         private void OnPlayerLogin(PlayerPostLoginEventArgs e)
         {
-            if (StringTime.FromString(PluginState.Config.NotificationPeriod).IsZero() || !e.Player.HasPermission(Permissions.RegionExtCmd))
+            if (StringTime.FromString(_context.Config.NotificationPeriod).IsZero() || !e.Player.HasPermission(Permissions.RegionExtCmd))
                 return;
-            PluginState.RegionExtensionManager.SendRequestNotify(e.Player, PluginState.RegionExtensionManager.RegionRequestManager.GetSortedRegionRequestsNames());
+            _context.RegionManager.SendRequestNotify(
+                e.Player,
+                _context.RegionManager.RegionRequestManager.GetSortedRegionRequestsNames(_context.Config));
         }
 
         private void OnPostInitialize(EventArgs args)
@@ -150,7 +155,7 @@ namespace RegionExtension.Infrastructure
 
         private void InitializePlugin()
         {
-            PluginState.RegionExtensionManager.PostInitialize(_plugin);
+            _context.RegionManager.PostInitialize(_plugin);
             DelayManager.Initialize(_plugin);
             TShock.Log.ConsoleInfo("Region extension loaded!");
         }
@@ -186,25 +191,26 @@ namespace RegionExtension.Infrastructure
                 foreach (var id in TShock.Regions.InAreaRegionID(point.X, point.Y))
                     regionsToUpdate.Add(id);
             foreach (var id in regionsToUpdate)
-                PluginState.RegionExtensionManager.InfoManager.UpdateLastActivity(id, DateTime.UtcNow);
+                _context.RegionManager.InfoManager.UpdateLastActivity(id, DateTime.UtcNow);
             points.Clear();
             _lastActiveCheck = DateTime.UtcNow;
         }
 
         private void OnInitialize(EventArgs args)
         {
-            PluginCommands.Initialize(_plugin);
-            PluginState.Contexts = new ContextManager();
-            PluginState.Contexts.Initialize();
-            PluginState.FastRegions = new List<FastRegion>();
-            PluginState.Config = ConfigFile.Read();
+            _context.Config = ConfigFile.Read();
+            Localization.DefaultLocalization = _context.Config.DefaultLocalization;
+            PluginCommands.Initialize(_plugin, _context);
+            _context.Contexts = new ContextManager(_context);
+            _context.Contexts.Initialize();
+            _context.FastRegions = new List<FastRegion>();
         }
 
         private void OnPlayerLogout(PlayerLogoutEventArgs e)
         {
-            int id = FastRegionLookup.FindByUser(e.Player.Account, PluginState.FastRegions);
+            int id = FastRegionLookup.FindByUser(e.Player.Account, _context.FastRegions);
             if (id != -1)
-                PluginState.FastRegions.RemoveAt(id);
+                _context.FastRegions.RemoveAt(id);
         }
 
         private void OnGetData(GetDataEventArgs args)
@@ -237,8 +243,8 @@ namespace RegionExtension.Infrastructure
                 int endY = reader.ReadInt16();
                 if (!IsInWorldBounds(startX, startY) || !IsInWorldBounds(endX, endY))
                     return;
-                if (PluginState.FastRegions[id].SetPoints(startX, startY, endX, endY))
-                    PluginState.FastRegions.RemoveAt(id);
+                if (_context.FastRegions[id].SetPoints(startX, startY, endX, endY))
+                    _context.FastRegions.RemoveAt(id);
             }
 
             args.Handled = true;
@@ -256,18 +262,18 @@ namespace RegionExtension.Infrastructure
                 int y = reader.ReadInt16();
                 if (!IsInWorldBounds(x, y))
                     return;
-                if (PluginState.FastRegions[id].SetPoint(x, y))
-                    PluginState.FastRegions.RemoveAt(id);
+                if (_context.FastRegions[id].SetPoint(x, y))
+                    _context.FastRegions.RemoveAt(id);
             }
 
             args.Handled = true;
         }
 
-        private static void HandleItemDropOperation(GetDataEventArgs args)
+        private void HandleItemDropOperation(GetDataEventArgs args)
         {
             using var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length));
             int id = reader.ReadInt16();
-            var rewrites = PluginState.ItemRewrites;
+            var rewrites = ItemRewriteRegistry.Rewrites;
             if (id >= Main.maxItems || rewrites[id] == null || !rewrites[id].Active)
                 return;
             reader.BaseStream.Seek(13, SeekOrigin.Begin);
@@ -279,9 +285,9 @@ namespace RegionExtension.Infrastructure
         private static bool IsInWorldBounds(int x, int y) =>
             x >= 0 && y >= 0 && x < Main.maxTilesX && y < Main.maxTilesY;
 
-        private static bool TryGetFastRegionIndex(int whoAmI, out int id)
+        private bool TryGetFastRegionIndex(int whoAmI, out int id)
         {
-            id = FastRegionLookup.FindByUser(TShock.Players[whoAmI]?.Account, PluginState.FastRegions);
+            id = FastRegionLookup.FindByUser(TShock.Players[whoAmI]?.Account, _context.FastRegions);
             return id != -1;
         }
 
@@ -301,10 +307,10 @@ namespace RegionExtension.Infrastructure
                     case "regionown":
                 case "region":
                     for (int i = 1; i < args.Parameters.Count; i++)
-                        if (args.Parameters[i].StartsWith(PluginState.Config.ContextSpecifier))
-                            PluginState.Contexts.InitializeContext(i, args);
-                    if (PluginState.Config.AutoCompleteSameName && args.Parameters.Count > 1 && "define" == args.Parameters[0])
-                        args.Parameters[1] = Utils.AutoCompleteSameName(args.Parameters[1], PluginState.Config.AutoCompleteSameNameFormat);
+                        if (args.Parameters[i].StartsWith(_context.Config.ContextSpecifier))
+                            _context.Contexts.InitializeContext(i, args);
+                    if (_context.Config.AutoCompleteSameName && args.Parameters.Count > 1 && "define" == args.Parameters[0])
+                        args.Parameters[1] = Utils.AutoCompleteSameName(args.Parameters[1], _context.Config.AutoCompleteSameNameFormat);
                     break;
             }
         }

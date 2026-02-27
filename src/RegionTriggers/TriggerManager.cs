@@ -22,11 +22,12 @@ namespace RegionExtension.RegionTriggers
 {
     public class TriggerManager
     {
+        private readonly bool[] _triggerIgnores;
         private DateTime _lastUpdate = DateTime.UtcNow;
         private DatabaseTable<TriggerDBUnit> _database;
         private Region[] _lastRegions = new Region[TShock.Players.Length];
         private bool[] _lastHostile = new bool[TShock.Players.Length];
-        Dictionary<Region, List<Trigger>> _triggers = new Dictionary<Region, List<Trigger>>();
+        Dictionary<int, List<Trigger>> _triggers = new Dictionary<int, List<Trigger>>();
 
         public static readonly RegionEvent[] Events = new RegionEvent[]
         {
@@ -37,8 +38,9 @@ namespace RegionExtension.RegionTriggers
             new RegionEvent(new[] {"onpvpoff", "pvpoff"}, "OnPvpOffEventDesc", RegionEvents.OnPvpOff)
         };
 
-        public TriggerManager(IDbConnection dbConnection)
+        public TriggerManager(IDbConnection dbConnection, bool[] triggerIgnores)
         {
+            _triggerIgnores = triggerIgnores;
             _database = new DatabaseTable<TriggerDBUnit>("RegionTrigger", dbConnection);
             Initialize();
         }
@@ -74,40 +76,38 @@ namespace RegionExtension.RegionTriggers
         {
             _database.InitializeTable();
             LoadTriggers();
-            RegionExtManager.OnRegionDeleted += OnRegionDeleted;
         }
 
         private void LoadTriggers()
         {
-            var triggers = new List<Trigger>();
             foreach (var region in TShock.Regions.Regions)
             {
                 var list = _database.GetValues(TriggerDBUnit.Reader, new[] { (nameof(TriggerDBUnit.RegionId), (object)region.ID) }).Select(t => t.ParseToTrigger()).ToList();
                 if (list.Count != 0)
                 {
-                    _triggers.Add(region, list);
-                    for (int i = 0; i < _triggers[region].Count; i++)
+                    _triggers[region.ID] = list;
+                    for (int i = 0; i < _triggers[region.ID].Count; i++)
                     {
-                        if (_triggers[region][i].LocalId != i)
+                        if (_triggers[region.ID][i].LocalId != i)
                         {
-                            _triggers[region][i].LocalId = i;
-                            _database.UpdateByColumn(nameof(TriggerDBUnit.LocalId), i, new[] { (nameof(TriggerDBUnit.Id), (object)_triggers[region][i].Id) });
+                            _triggers[region.ID][i].LocalId = i;
+                            _database.UpdateByColumn(nameof(TriggerDBUnit.LocalId), i, new[] { (nameof(TriggerDBUnit.Id), (object)_triggers[region.ID][i].Id) });
                         }
                     }
                 }
             }
         }
 
-        private void OnRegionDeleted(BaseRegionArgs args)
+        public void HandleRegionDeleted(Region region)
         {
-            if (!_triggers.ContainsKey(args.Region))
+            if (!_triggers.ContainsKey(region.ID))
                 return;
-            ClearTriggers(args.Region);
+            ClearTriggers(region);
         }
 
         public bool ClearTriggers(Region region)
         {
-            _triggers.Remove(region);
+            _triggers.Remove(region.ID);
             return _database.RemoveByColumn(new[] { (nameof(TriggerDBUnit.RegionId), (object)region.ID) });
         }
 
@@ -117,38 +117,38 @@ namespace RegionExtension.RegionTriggers
         }
 
         public IEnumerable<Trigger> GetTriggers(Region region) =>
-            _triggers.ContainsKey(region) ? _triggers[region] : Enumerable.Empty<Trigger>();
+            _triggers.TryGetValue(region.ID, out var regionTriggers) ? regionTriggers : Enumerable.Empty<Trigger>();
 
         public bool CreateTrigger(Region region, RegionEvents regionEvent, ITriggerAction triggerAction)
         {
-            if (!_triggers.ContainsKey(region))
-                _triggers.Add(region, new List<Trigger>());
-            if (!_database.SaveValue(new TriggerDBUnit(region.ID, _triggers[region].Count, triggerAction.Name, regionEvent.ToString(), triggerAction.GetArgsString())))
+            if (!_triggers.ContainsKey(region.ID))
+                _triggers[region.ID] = new List<Trigger>();
+            if (!_database.SaveValue(new TriggerDBUnit(region.ID, _triggers[region.ID].Count, triggerAction.Name, regionEvent.ToString(), triggerAction.GetArgsString())))
                 return false;
-            var triggerUnit = _database.GetValues(TriggerDBUnit.Reader, new[] { (nameof(TriggerDBUnit.RegionId), (object)region.ID), (nameof(TriggerDBUnit.LocalId), _triggers[region].Count) }).FirstOrDefault();
+            var triggerUnit = _database.GetValues(TriggerDBUnit.Reader, new[] { (nameof(TriggerDBUnit.RegionId), (object)region.ID), (nameof(TriggerDBUnit.LocalId), _triggers[region.ID].Count) }).FirstOrDefault();
             if (triggerUnit == null)
                 return false;
-            var trigger = new Trigger(triggerUnit.Id, _triggers[region].Count, region, regionEvent, triggerAction);
-            _triggers[region].Add(trigger);
+            var trigger = new Trigger(triggerUnit.Id, _triggers[region.ID].Count, region, regionEvent, triggerAction);
+            _triggers[region.ID].Add(trigger);
             return true;
         }
 
         public bool RemoveTrigger(Region region, int id)
         {
-            if (!_triggers.ContainsKey(region) || _triggers[region].Count <= id)
+            if (!_triggers.ContainsKey(region.ID) || _triggers[region.ID].Count <= id)
                 return false;
-            return RemoveTrigger(region, _triggers[region][id]);
+            return RemoveTrigger(region, _triggers[region.ID][id]);
         }
 
         public bool RemoveTrigger(Region region, Trigger trigger)
         {
             if (!_database.RemoveByObject(new TriggerDBUnit(trigger)))
                 return false;
-            _triggers[region].Remove(trigger);
-            for(int i = 0; i < _triggers[region].Count; i++)
+            _triggers[region.ID].Remove(trigger);
+            for(int i = 0; i < _triggers[region.ID].Count; i++)
             {
-                _triggers[region][i].LocalId = i;
-                _database.UpdateByColumn(nameof(TriggerDBUnit.LocalId), i, new[] { (nameof(TriggerDBUnit.Id), (object)_triggers[region][i].Id) });
+                _triggers[region.ID][i].LocalId = i;
+                _database.UpdateByColumn(nameof(TriggerDBUnit.LocalId), i, new[] { (nameof(TriggerDBUnit.Id), (object)_triggers[region.ID][i].Id) });
             }
             return true;
         }
@@ -160,7 +160,7 @@ namespace RegionExtension.RegionTriggers
             for (int i = 0; i < TShock.Players.Length; i++)
             {
                 var player = TShock.Players[i];
-                if (player != null && player.Active && !PluginState.TriggerIgnores[i])
+                if (player != null && player.Active && !_triggerIgnores[i])
                 {
                     CheckRegionUpdate(player);
                     CheckPvpUpdate(player);
@@ -217,7 +217,7 @@ namespace RegionExtension.RegionTriggers
 
         private void TriggerEvent(RegionEvents events, TSPlayer player, Region region)
         {
-            if (region == null || !_triggers.TryGetValue(region, out var regionTriggers))
+            if (region == null || !_triggers.TryGetValue(region.ID, out var regionTriggers))
                 return;
             for (int i = 0; i < regionTriggers.Count; i++)
             {
@@ -232,7 +232,7 @@ namespace RegionExtension.RegionTriggers
 
         public bool AddCondition(Region region, IRegionCondition condition, IEnumerable<int> localIds)
         {
-            var triggers = _triggers[region];
+            var triggers = _triggers[region.ID];
             localIds ??= triggers.Select(t => t.LocalId);
             var res = true;
             foreach (var i in localIds.Intersect(triggers.Select(t => t.LocalId)))
@@ -247,7 +247,7 @@ namespace RegionExtension.RegionTriggers
 
         public bool RemoveCondition(Region region, IRegionCondition condition, IEnumerable<int> localIds)
         {
-            var triggers = _triggers[region];
+            var triggers = _triggers[region.ID];
             localIds ??= triggers.Select(t => t.LocalId);
             var res = true;
             foreach (var i in localIds.Intersect(triggers.Select(t => t.LocalId)))
@@ -260,7 +260,7 @@ namespace RegionExtension.RegionTriggers
 
         internal void Reload(ReloadEventArgs e)
         {
-            _triggers = new Dictionary<Region, List<Trigger>>();
+            _triggers = new Dictionary<int, List<Trigger>>();
             LoadTriggers();
         }
     }

@@ -21,7 +21,7 @@ namespace RegionExtension.Commands.Parameters
 
         public override bool TrySetValue(string str, CommandArgsExtension args = null)
         {
-            var prop = PluginState.RegionExtensionManager.PropertyManager.GetProperty(str);
+            var prop = args.Context.RegionManager.PropertyManager.GetProperty(str);
             if (prop == null)
             {
                 args.Player.SendErrorMessage("Failed found '{0}' property!".SFormat(str));

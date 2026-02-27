@@ -32,9 +32,9 @@ namespace RegionExtension.Commands.SubCommands
 
         private void SendRegionList(CommandArgsExtension args, int page)
         {
-            var regionNames = PluginState.RegionExtensionManager.RegionRequestManager.Requests.OrderBy(r => r.DateCreation)
+            var regionNames = args.Context.RegionManager.RegionRequestManager.Requests.OrderBy(r => r.DateCreation)
                                                                                          .Select(r => Utils.GetGradientByDateTime(r.Region.Name, r.DateCreation,
-                                                                                                      r.DateCreation + StringTime.FromString(Utils.GetSettingsByUserAccount(r.User).RequestTime)));
+                                                                                                      r.DateCreation + StringTime.FromString(Utils.GetSettingsByUserAccount(args.Context.Config, r.User).RequestTime)));
             var usedName = args.Message.Split(' ')[0];
             var usedSubCommandName = args.Parameters[0];
             PaginationTools.SendPage(args.Player, page, PaginationTools.BuildLinesFromTerms(regionNames),

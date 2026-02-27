@@ -53,7 +53,7 @@ namespace RegionExtension.Database
 
         public bool RegisterDeletedRegion(Region region, UserAccount userDeleter, RegionExtensionInfo info)
         {
-            try
+            return DbSafe.Execute("Register deleted region", () =>
             {
                 var deleterId = userDeleter?.ID ?? 0;
                 var deleterName = userDeleter?.Name ?? "Server";
@@ -74,22 +74,17 @@ namespace RegionExtension.Database
                     string.Join(' ', region.AllowedGroups),
                     region.Owner,
                     region.Z,
-                    info.DateCreation,
-                    DateTime.UtcNow
+                    DateTimeCodec.FormatUtc(info.DateCreation),
+                    DateTimeCodec.FormatUtc(DateTime.UtcNow)
                 );
                 _deletedInfo.Add(new DeletedInfo(new RegionExtended() { Region = region, ExtensionInfo = info }, DateTime.UtcNow, deleterName));
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
         public bool LoadRegions()
         {
-            try
+            return DbSafe.Execute("Load deleted regions", () =>
             {
                 using (var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE {TableInfo.WorldId}=@0", Main.worldID.ToString()))
                 {
@@ -103,18 +98,13 @@ namespace RegionExtension.Database
                                            .Reverse().ToList();
                 RemoveMoreThanMaxRegions();
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
         public bool RemoveMoreThanMaxRegions()
         {
             var max = 64;
-            try
+            return DbSafe.Execute("Trim deleted regions", () =>
             {
                 while ( _deletedInfo.Count > max )
                 {
@@ -122,13 +112,8 @@ namespace RegionExtension.Database
                     _deletedInfo.Remove(lastReg);
                     _database.Query($"DELETE FROM {_table.Name} WHERE RegionId=@0", lastReg.RegionExt.Region.ID);
                 }
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         public List<string> GetRegionsInfo() => 
@@ -139,17 +124,12 @@ namespace RegionExtension.Database
 
         public bool RemoveRegionFromDeleted(int regionId)
         {
-            try
+            return DbSafe.Execute("Remove deleted region", () =>
             {
                 _database.Query($"DELETE FROM {_table.Name} WHERE RegionId=@0", regionId);
                 _deletedInfo.RemoveAll(r => r.RegionExt.Region.ID == regionId);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
+            });
         }
 
         public RegionExtended GetRegionByName(string regionName)
@@ -227,7 +207,7 @@ namespace RegionExtension.Database
             var allowedGroups = reader.Get<string>(DeletedRegionsDB.TableInfo.Groups.ToString()).Split(' ').ToList();
             var owner = reader.Get<string>(DeletedRegionsDB.TableInfo.Owner.ToString());
             var z = reader.Get<int>(DeletedRegionsDB.TableInfo.Z.ToString());
-            var deletionTime = DateTime.Parse(reader.Get<string>(DeletedRegionsDB.TableInfo.DeletionDate.ToString()));
+            var deletionTime = DateTimeCodec.Parse(reader.Get<string>(DeletedRegionsDB.TableInfo.DeletionDate.ToString()));
             var userid = reader.Get<int>(DeletedRegionsDB.TableInfo.DeleterId.ToString());
             var user = TShock.UserAccounts.GetUserAccountByID(userid);
             var username = user == null ? "Server" : user.Name;
@@ -250,7 +230,7 @@ namespace RegionExtension.Database
                 ExtensionInfo = new RegionExtensionInfo(
                     id,
                     ownerId,
-                    DateTime.Parse(reader.Get<string>(DeletedRegionsDB.TableInfo.CreationDate.ToString())),
+                    DateTimeCodec.Parse(reader.Get<string>(DeletedRegionsDB.TableInfo.CreationDate.ToString())),
                     DateTime.UtcNow,
                     DateTime.UtcNow
                 )

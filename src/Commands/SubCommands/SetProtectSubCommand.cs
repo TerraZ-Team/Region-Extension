@@ -32,7 +32,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void DeleteRegion(CommandArgsExtension args, Region region, bool state)
         {
-            if (PluginState.RegionExtensionManager.Protect(args, region, state))
+            if (args.Context.RegionManager.Protect(args, region, state))
                 args.Player.SendInfoMessage("Region '{0}' protect changed .".SFormat(region.Name));
             else
                 args.Player.SendErrorMessage($"Region protect change failed.");

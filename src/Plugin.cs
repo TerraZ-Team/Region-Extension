@@ -14,11 +14,13 @@ namespace RegionExtension
         public override string Name => "Region Extension";
         public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
+        internal PluginContext Context { get; }
         private readonly PluginEventDispatcher _eventDispatcher;
 
         public Plugin(Main game) : base(game)
         {
-            _eventDispatcher = new PluginEventDispatcher(this);
+            Context = new PluginContext();
+            _eventDispatcher = new PluginEventDispatcher(this, Context);
         }
 
         public override void Initialize()
@@ -32,8 +34,8 @@ namespace RegionExtension
                 return;
 
             PluginCommands.Dispose();
-            PluginState.RegionExtensionManager?.PropertyManager?.Dispose(this);
-            PluginState.RegionExtensionManager?.Dispose();
+            Context.RegionManager?.PropertyManager?.Dispose(this);
+            Context.RegionManager?.Dispose();
             RegionTriggers.Conditions.DelayManager.Dispose(this);
             _eventDispatcher.Deregister();
         }

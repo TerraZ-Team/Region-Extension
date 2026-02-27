@@ -10,10 +10,11 @@ namespace RegionExtension
 {
     public class ContextManager
     {
+        private readonly PluginContext _context;
         List<ContextCommand> Contexts;
-        public ContextManager()
+        public ContextManager(PluginContext context)
         {
-
+            _context = context;
         }
         public void Initialize()
         {
@@ -54,7 +55,7 @@ namespace RegionExtension
               }
             );
 
-            args.Player.SendInfoMessage($"Specifier: {PluginState.Config.ContextSpecifier}");
+            args.Player.SendInfoMessage($"Specifier: {_context.Config.ContextSpecifier}");
 
         }
 

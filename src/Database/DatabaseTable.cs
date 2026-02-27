@@ -39,18 +39,14 @@ namespace RegionExtension.Database
             var res = new List<T>();
             var (whereClause, whereArgs) = BuildWhereClause(conditions);
             var query = $"SELECT * FROM {Name}{whereClause}";
-            try
+            DbSafe.Execute($"Read rows from {Name}", () =>
             {
                 using (var reader = Connection.QueryReader(query, whereArgs))
                 {
                     while (reader.Read())
                         res.Add(unitReader(reader));
                 }
-            }
-            catch (Exception ex) 
-            {
-                TShock.Log.Error(ex.Message);
-            }
+            });
             return res;
         }
 
@@ -67,17 +63,12 @@ namespace RegionExtension.Database
                 SetColumnProperties(property, column);
                 columns.Add(column);
             }
-            try
+            return DbSafe.Execute($"Ensure table {Name}", () =>
             {
                 var creator = new SqlTableCreator(Connection, QueryBuilderFactory.Create(Connection));
                 creator.EnsureTableStructure(new SqlTable(Name, columns.ToArray()));
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         private static void SetColumnProperties(PropertyInfo property, SqlColumn column)
@@ -110,16 +101,11 @@ namespace RegionExtension.Database
             var names = string.Join(", ", properties.Select(p => p.Name).ToArray());
             var placeholders = string.Join(", ", properties.Select((_, i) => $"@{i}"));
             var args = properties.Select(p => p.GetValue(dBUnit) ?? DBNull.Value).ToArray();
-            try
+            return DbSafe.Execute($"Insert row into {Name}", () =>
             {
                 Connection.Query($"INSERT INTO {Name} ({names}) VALUES ({placeholders});", args);
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         public bool RemoveByObject(T dBunit)
@@ -127,32 +113,22 @@ namespace RegionExtension.Database
             var keyProperty = KeyPropertie;
             if (keyProperty == null)
                 throw new ArgumentException("Failed find primary key column!");
-            try
+            return DbSafe.Execute($"Delete row from {Name} by object", () =>
             {
                 Connection.Query($"DELETE FROM {Name} WHERE {keyProperty.Name}=@0", keyProperty.GetValue(dBunit) ?? DBNull.Value);
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         public bool RemoveByColumn(params (string columnName, object value)[] conditions)
         {
             var (whereClause, whereArgs) = BuildWhereClause(conditions);
             var query = $"DELETE FROM {Name}{whereClause}";
-            try
+            return DbSafe.Execute($"Delete rows from {Name}", () =>
             {
                 Connection.Query(query, whereArgs);
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         public bool UpdateByColumn(string columnName, object value, params (string columnName, object value)[] conditions)
@@ -160,16 +136,11 @@ namespace RegionExtension.Database
             var (whereClause, whereArgs) = BuildWhereClause(conditions, 1);
             var args = new object[] { value ?? DBNull.Value }.Concat(whereArgs).ToArray();
             var query = $"UPDATE {Name} SET {columnName}=@0{whereClause}";
-            try
+            return DbSafe.Execute($"Update rows in {Name}", () =>
             {
                 Connection.Query(query, args);
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-                return false;
-            }
-            return true;
+                return true;
+            });
         }
 
         private static (string whereClause, object[] args) BuildWhereClause((string columnName, object value)[] conditions, int startIndex = 0)

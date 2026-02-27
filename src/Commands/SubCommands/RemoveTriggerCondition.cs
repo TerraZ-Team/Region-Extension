@@ -35,7 +35,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void RemoveConditions(CommandArgsExtension args, Region region, IRegionCondition condition, int[] ids)
         {
-            if (PluginState.RegionExtensionManager.TriggerManager.RemoveCondition(region, condition, ids))
+            if (args.Context.RegionManager.TriggerManager.RemoveCondition(region, condition, ids))
                 args.Player.SendSuccessMessage("Triggers condition removed!");
             else
                 args.Player.SendErrorMessage("Failed remove some conditions!");

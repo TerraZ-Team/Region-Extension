@@ -30,7 +30,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region)
         {
-            if (PluginState.RegionExtensionManager.PropertyManager.RemoveAllProperties(region))
+            if (args.Context.RegionManager.PropertyManager.RemoveAllProperties(region))
                 args.Player.SendSuccessMessage("Properties cleared!");
             else
                 args.Player.SendErrorMessage("Failed clear properties!");

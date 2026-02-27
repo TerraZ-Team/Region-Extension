@@ -39,7 +39,7 @@ namespace RegionExtension.Commands.SubCommands
         {
             var usedName = args.Message.Split(' ')[0];
             var usedSubCommandName = args.Parameters[0];
-            var info = PluginState.RegionExtensionManager.PropertyManager.RegionProperties.Where(p => p.DefinedRegions.Contains(region))
+            var info = args.Context.RegionManager.PropertyManager.RegionProperties.Where(p => p.DefinedRegions.Contains(region))
                                                                                      .Select(p => (Name: p.Names[0], Conditions: p.GetStringArgs(region).Conditions, Args: p.GetStringArgs(region).Args))
                                                                                      .SelectMany(i => new string[] { i.Name + (i.Conditions.Length != 0 ? " | " + i.Conditions : ""), i.Args })
                                                                                      .ToArray();

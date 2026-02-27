@@ -31,7 +31,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void RestoreRegion(CommandArgsExtension args, UserAccount target, int count)
         {
-            var regions = PluginState.RegionExtensionManager.DeletedRegions.GetRegionsByUser(target);
+            var regions = args.Context.RegionManager.DeletedRegions.GetRegionsByUser(target);
             if (regions == null || regions.Count == 0)
             {
                 args.Player.SendErrorMessage("Failed found region by user '{0}'!".SFormat(target.Name));
@@ -42,15 +42,15 @@ namespace RegionExtension.Commands.SubCommands
             {
                 if (count == 0)
                     break;
-                PluginState.RegionExtensionManager.DeletedRegions.RemoveRegionFromDeleted(reg.Region.ID);
+                args.Context.RegionManager.DeletedRegions.RemoveRegionFromDeleted(reg.Region.ID);
                 string newName;
-                if (!Utils.TryAutoComplete(reg.Region.Name, reg.Region.Area, out newName))
+                if (!Utils.TryAutoComplete(args.Context.Config, reg.Region.Name, reg.Region.Area, out newName))
                 {
                     args.Player.SendErrorMessage("Region '{0}' already exist!".SFormat(reg.Region.Name));
                     continue;
                 }
                 reg.Region.Name = newName;
-                if (!PluginState.RegionExtensionManager.DefineRegion(args, reg.Region))
+                if (!args.Context.RegionManager.DefineRegion(args, reg.Region))
                     args.Player.SendErrorMessage("Failed restore region '{0}'!".SFormat(reg.Region.Name));
                 restoredCount++;
                 count--;

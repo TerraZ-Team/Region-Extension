@@ -33,7 +33,7 @@ namespace RegionExtension.Commands.SubCommands
                 args.Player.SendErrorMessage("Set points before define region!");
                 return;
             }
-            if (!Utils.TryAutoComplete((string)Params[0].Value, out regionname))
+            if (!Utils.TryAutoComplete(args.Context.Config, (string)Params[0].Value, out regionname))
             {
                 args.Player.SendErrorMessage("Region '{0}' already exist!".SFormat(regionname));
                 return;
@@ -55,7 +55,7 @@ namespace RegionExtension.Commands.SubCommands
                 Owner = args.Player.Account.Name,
                 WorldID = Main.worldID.ToString()
             };
-            if (PluginState.RegionExtensionManager.DefineRegion(args, region))
+            if (args.Context.RegionManager.DefineRegion(args, region))
                 args.Player.SendSuccessMessage("Region '{0}' defined!".SFormat(region.Name));
             else
                 args.Player.SendErrorMessage("Failed define region '{0}'!".SFormat(region.Name));

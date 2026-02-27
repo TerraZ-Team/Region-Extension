@@ -1,5 +1,6 @@
 using RegionExtension.Commands;
 using RegionExtension.Commands.Parameters;
+using RegionExtension;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace RegionExtension.RegionTriggers.Actions
         public static ActionFormer Former { get; } = new ActionFormer(new[] { "command", "cmd" }, "CommandTriggerDesc",
                                                                       new ICommandParam[] {  new StringParam("command", "command string") },
                                                                       (param, args) => CreateTriggerAction(param, args),
-                                                                      s => CreateCommandAction(s, TSPlayer.Server).Action)
+                                                                      s => new CommandAction(s))
                                                                       { Permission = Permissions.TriggerCommand };
 
         private string _commandString;
@@ -28,13 +29,13 @@ namespace RegionExtension.RegionTriggers.Actions
             _commandString = commandString;
         }
 
-        public static (CommandAction Action, string Message) CreateCommandAction(string commandString, TSPlayer player)
+        public static (CommandAction Action, string Message) CreateCommandAction(ConfigFile config, string commandString, TSPlayer player)
         {
             var commandParams = commandString.Split(' ');
             var cmd = TShockAPI.Commands.ChatCommands.FirstOrDefault(c => c.Name == commandParams[0] || c.Names.Contains(commandParams[0]));
             if (cmd == null)
                 return (null, "Command '{0}' was not founded!".SFormat(commandParams[0]));
-            if(PluginState.Config.BannedTriggerCommands.Any(c => cmd.Names.Contains(c)))
+            if(config.BannedTriggerCommands.Any(c => cmd.Names.Contains(c)))
                 return (null, "Command '{0}' was banned for trigger use!".SFormat(cmd.Name));
             bool havePermission = false;
             foreach(var perm in cmd.Permissions)
@@ -51,10 +52,10 @@ namespace RegionExtension.RegionTriggers.Actions
         public static ITriggerAction CreateTriggerAction(ICommandParam[] param, CommandArgsExtension args)
         {
             string command = (string)param[0].Value;
-            var res = CreateCommandAction(command, args.Player);
+            var res = CreateCommandAction(args.Context.Config, command, args.Player);
             if (res.Action == null)
                 args.Player.SendErrorMessage(res.Message);
-            return CreateCommandAction(command, args.Player).Action;
+            return res.Action;
         }
 
         public void Execute(TriggerActionArgs args)

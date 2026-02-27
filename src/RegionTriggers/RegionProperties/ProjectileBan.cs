@@ -24,7 +24,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         public ICommandParam[] CommandParams => new[] { new ArrayParam<Projectile>("projs...", "Projectiles which will be banned in region.") };
         public Region[] DefinedRegions => _projBans.Keys.ToArray();
 
-        private Dictionary<Region, ConditionDataPair<int>> _projBans = new Dictionary<Region, ConditionDataPair<int>>();
+        private Dictionary<Region, ConditionDataPair<int>> _projBans = new Dictionary<Region, ConditionDataPair<int>>(RegionIdComparer.Instance);
         private DateTime _lastUpdate = DateTime.Now;
 
         public void InitializeEventHandler(TerrariaPlugin plugin)

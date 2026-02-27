@@ -48,7 +48,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void MoveRegion(CommandArgsExtension args, Region region, int amount, Direction direction)
         {
-            if (PluginState.RegionExtensionManager.Resize(args, region, amount, direction.TshockDirection))
+            if (args.Context.RegionManager.Resize(args, region, amount, direction.TshockDirection))
                 args.Player.SendSuccessMessage("Region resized.");
             else
                 args.Player.SendErrorMessage("Failed resize region.");

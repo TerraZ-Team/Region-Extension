@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
+using RegionExtension.Database;
 
 namespace RegionExtension
 {
@@ -65,13 +66,13 @@ namespace RegionExtension
             return $"[c/{hex}:{str}]";
         }
 
-        public static (bool res, string msg) CheckConfigConditions(TSPlayer player, Region region)
+        public static (bool res, string msg) CheckConfigConditions(ConfigFile config, RegionExtManager manager, TSPlayer player, Region region)
         {
             if (player?.Account == null)
                 return (false, "You must be logged in to create request.");
-            var count = PluginState.RegionExtensionManager.RegionRequestManager.Requests.Count(r => r.User.ID == player.Account.ID);
+            var count = manager.RegionRequestManager.Requests.Count(r => r.User.ID == player.Account.ID);
             var area = region.Area.Width * region.Area.Height;
-            var settings = GetSettingsByTSPlayer(player);
+            var settings = GetSettingsByTSPlayer(config, player);
             if(settings.MaxRequestCount != 0 && count >= settings.MaxRequestCount)
                 return new (false, "You already have '{0}' requests!".SFormat(count));
             if(settings.MaxRequestArea != 0 && area > settings.MaxRequestArea)
@@ -83,21 +84,21 @@ namespace RegionExtension
             return (true, "All checks passed");
         }
 
-        public static RequestSettings GetSettingsByTSPlayer(TSPlayer plr)
+        public static RequestSettings GetSettingsByTSPlayer(ConfigFile config, TSPlayer plr)
         {
-            var settings = PluginState.Config.RequestSettings.FirstOrDefault(r => r.GroupName == plr?.Group.Name);
+            var settings = config.RequestSettings.FirstOrDefault(r => r.GroupName == plr?.Group.Name);
             if (settings == null)
-                settings = PluginState.Config.RequestSettings.FirstOrDefault(r => r.GroupName == "default");
+                settings = config.RequestSettings.FirstOrDefault(r => r.GroupName == "default");
             if (settings == null)
                 settings = new RequestSettings();
             return settings;
         }
 
-        public static RequestSettings GetSettingsByUserAccount(UserAccount account)
+        public static RequestSettings GetSettingsByUserAccount(ConfigFile config, UserAccount account)
         {
-            var settings = PluginState.Config.RequestSettings.FirstOrDefault(r => r.GroupName == account?.Group);
+            var settings = config.RequestSettings.FirstOrDefault(r => r.GroupName == account?.Group);
             if (settings == null)
-                settings = PluginState.Config.RequestSettings.FirstOrDefault(r => r.GroupName == "default");
+                settings = config.RequestSettings.FirstOrDefault(r => r.GroupName == "default");
             if (settings == null)
                 settings = new RequestSettings();
             return settings;
@@ -110,9 +111,9 @@ namespace RegionExtension
             return GetGradientByPos(str, pos);
         }
 
-        public static bool TryAutoComplete(string str, out string result)
+        public static bool TryAutoComplete(ConfigFile config, string str, out string result)
         {
-            if (!PluginState.Config.AutoCompleteSameName)
+            if (!config.AutoCompleteSameName)
             {
                 result = str;
                 return !TShock.Regions.Regions.Any(r => r.Name.ToLower().Equals(str.ToLower()));
@@ -121,14 +122,14 @@ namespace RegionExtension
             string res = str;
             while (TShock.Regions.Regions.Any(r => r.Name.ToLower().Equals(res.ToLower())))
             {
-                res = PluginState.Config.AutoCompleteSameNameFormat.SFormat(str, num);
+                res = config.AutoCompleteSameNameFormat.SFormat(str, num);
                 num++;
             }
             result = res;
             return true;
         }
 
-        public static bool TryAutoComplete(string str, Rectangle regionArea, out string result)
+        public static bool TryAutoComplete(ConfigFile config, string str, Rectangle regionArea, out string result)
         {
             int num = 0;
             var reg = TShock.Regions.Regions.FirstOrDefault(r => r.Name.ToLower().Equals(str.ToLower()));
@@ -140,7 +141,7 @@ namespace RegionExtension
                     result = null;
                     return false;
                 }
-                res = PluginState.Config.AutoCompleteSameNameFormat.SFormat(res, num);
+                res = config.AutoCompleteSameNameFormat.SFormat(res, num);
                 reg = TShock.Regions.Regions.FirstOrDefault(r => r.Name.ToLower().Equals(res.ToLower()));
                 num++;
             }

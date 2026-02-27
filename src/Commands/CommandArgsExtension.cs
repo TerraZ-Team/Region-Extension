@@ -10,10 +10,13 @@ namespace RegionExtension.Commands
     public class CommandArgsExtension : CommandArgs
     {
         public Plugin Plugin { get; set; }
-        public CommandArgsExtension(CommandArgs args, Plugin plugin) :
+        public PluginContext Context { get; }
+
+        public CommandArgsExtension(CommandArgs args, Plugin plugin, PluginContext context) :
             base(args.Message, args.Silent, args.Player, args.Parameters)
         {
             Plugin = plugin;
+            Context = context;
         }
     }
 }

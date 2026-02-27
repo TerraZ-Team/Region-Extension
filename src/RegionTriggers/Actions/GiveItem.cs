@@ -9,6 +9,7 @@ using Terraria;
 using TShockAPI;
 using System.Collections;
 using Terraria.ID;
+using RegionExtension.Infrastructure;
 
 namespace RegionExtension.RegionTriggers.Actions
 {
@@ -89,7 +90,7 @@ namespace RegionExtension.RegionTriggers.Actions
                 };
             var id = Item.NewItem(null, (int)Math.Ceiling(_x.Count(args.Player, args.Region) * 16), (int)Math.Ceiling(_y.Count(args.Player, args.Region) * 16), 1, 1, _type, _stack, true, _prefix, true);
             if(useAdvaced)
-                PluginState.ItemRewrites[id] = itemRewrite;
+                ItemRewriteRegistry.Rewrites[id] = itemRewrite;
         }
 
         public string GetArgsString() =>

@@ -52,7 +52,7 @@ namespace RegionExtension.Database
             var userId = user == null ? 0 : user.ID;
             if (_redoActions.ContainsKey(regionId) && clearRedo)
                 _redoActions.Remove(regionId);
-            try
+            DbSafe.Execute("Save region action", () =>
             {
                 var variablesString = string.Join(", ", _table.Columns.Select(c => c.Name).Where(s => s != TableHistoryInfo.Id.ToString()));
                 _database.Query($"INSERT INTO {_table.Name} ({variablesString}) VALUES (@0, @1, @2, @3, @4, @5);",
@@ -61,12 +61,8 @@ namespace RegionExtension.Database
                     name,
                     args,
                     undoArgs,
-                    dateTime.ToString());
-            }
-            catch (Exception ex)
-            {
-                TShock.Log.Error(ex.Message);
-            }
+                    DateTimeCodec.FormatUtc(dateTime));
+            });
         }
 
         public void SaveAction(IAction action, Region region, UserAccount user)
@@ -77,7 +73,7 @@ namespace RegionExtension.Database
         public bool Undo(int count, int regionId)
         {
             var actions = new List<ActionInfo>();
-            try
+            if (!DbSafe.Execute("Load history for undo", () =>
             {
                 using (var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE RegionId=@0", regionId))
                 {
@@ -89,15 +85,14 @@ namespace RegionExtension.Database
                         var actionName = reader.Get<string>(_table.Columns[3].Name);
                         var args = reader.Get<string>(_table.Columns[4].Name);
                         var undoArgs = reader.Get<string>(_table.Columns[5].Name);
-                        var dateTime = DateTime.Parse(reader.Get<string>(_table.Columns[6].Name));
+                        var dateTime = DateTimeCodec.Parse(reader.Get<string>(_table.Columns[6].Name));
                         var action = ActionFactory.GetActionByName(actionName, args);
                         actions.Add(new ActionInfo(id, action, regionId, userId, dateTime, undoArgs));
                     }
                 }
-            }
-            catch (Exception e)
+                return true;
+            }))
             {
-                TShock.Log.Error(e.Message);
                 return false;
             }
             var sortedActions = actions.OrderBy(a => a.Date).Reverse();
@@ -120,7 +115,7 @@ namespace RegionExtension.Database
         {
             var actions = new List<ActionInfo>();
             var info = new List<string>();
-            try
+            if (!DbSafe.Execute("Load history info", () =>
             {
                 using (var reader = _database.QueryReader($"SELECT * FROM {_table.Name} WHERE RegionId=@0", regionId))
                 {
@@ -132,15 +127,14 @@ namespace RegionExtension.Database
                         var actionName = reader.Get<string>(_table.Columns[3].Name);
                         var args = reader.Get<string>(_table.Columns[4].Name);
                         var undoArgs = reader.Get<string>(_table.Columns[5].Name);
-                        var dateTime = DateTime.Parse(reader.Get<string>(_table.Columns[6].Name));
+                        var dateTime = DateTimeCodec.Parse(reader.Get<string>(_table.Columns[6].Name));
                         var action = ActionFactory.GetActionByName(actionName, args);
                         actions.Add(new ActionInfo(id, action, regionId, userId, dateTime, undoArgs));
                     }
                 }
-            }
-            catch (Exception e)
+                return true;
+            }))
             {
-                TShock.Log.Error(e.Message);
                 return null;
             }
             info = actions.OrderBy(a => a.Date)

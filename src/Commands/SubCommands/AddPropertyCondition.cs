@@ -35,7 +35,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionProperty(CommandArgsExtension args, Region region, IRegionCondition condition, PropertyFormer former)
         {
-            if (PluginState.RegionExtensionManager.PropertyManager.AddRegionCondition(region, former.Name, former.Params, condition))
+            if (args.Context.RegionManager.PropertyManager.AddRegionCondition(region, former.Name, former.Params, condition))
                 args.Player.SendSuccessMessage("Property condition added!");
             else
                 args.Player.SendErrorMessage("Failed add some conditions!");

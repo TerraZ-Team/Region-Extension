@@ -15,11 +15,13 @@ namespace RegionExtension
         private readonly int _z;
         private readonly bool _protect;
         private readonly bool _isRequest;
+        private readonly PluginContext _context;
 
         public UserAccount User { get { return _player.Account; } }
 
-        public FastRegion(TSPlayer player, string regionName, string ownerName, int z = 0, bool protect = true, bool isRequest = false)
+        public FastRegion(PluginContext context, TSPlayer player, string regionName, string ownerName, int z = 0, bool protect = true, bool isRequest = false)
         {
+            _context = context;
             _player = player;
             _regionName = regionName;
             _ownerName = ownerName;
@@ -78,8 +80,8 @@ namespace RegionExtension
             };
             if (_isRequest)
             {
-                var checkResult = Utils.CheckConfigConditions(_player, region);
-                var settings = Utils.GetSettingsByTSPlayer(_player);
+                var checkResult = Utils.CheckConfigConditions(_context.Config, _context.RegionManager, _player, region);
+                var settings = Utils.GetSettingsByTSPlayer(_context.Config, _player);
                 region.Z = settings.DefaultRequestZ;
                 region.DisableBuild = settings.ProtectRequestedRegion;
                 if (!checkResult.res)
@@ -87,7 +89,7 @@ namespace RegionExtension
                     _player.SendErrorMessage(checkResult.msg);
                     return;
                 }
-                if (PluginState.RegionExtensionManager.CreateRequest(region, _player))
+                if (_context.RegionManager.CreateRequest(region, _player))
                 {
                     _player.SendSuccessMessage("Region '{0}' defined!".SFormat(region.Name));
                     _player.SendSuccessMessage("Request created!".SFormat(region.Name));
@@ -96,7 +98,7 @@ namespace RegionExtension
                     _player.SendErrorMessage("Failed define region '{0}'!".SFormat(region.Name));
                 return;
             }
-            if (PluginState.RegionExtensionManager.DefineRegion(_player, region))
+            if (_context.RegionManager.DefineRegion(_player, region))
                 _player.SendSuccessMessage("Set region " + _regionName);
         }
     }

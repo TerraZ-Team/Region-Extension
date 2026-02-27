@@ -25,7 +25,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         public ICommandParam[] CommandParams => new[] { new ArrayParam<NPCWeightPair>("npcs...", "Npcs which will be spawn in region with weight in format {npc}:{weight}.") };
         public Region[] DefinedRegions => _npcs.Keys.ToArray();
 
-        private Dictionary<Region, ConditionDataPair<NPCWeightPair>> _npcs = new Dictionary<Region, ConditionDataPair<NPCWeightPair>>();
+        private Dictionary<Region, ConditionDataPair<NPCWeightPair>> _npcs = new Dictionary<Region, ConditionDataPair<NPCWeightPair>>(RegionIdComparer.Instance);
         private DateTime _lastUpdate = DateTime.Now;
 
         public void InitializeEventHandler(TerrariaPlugin plugin)

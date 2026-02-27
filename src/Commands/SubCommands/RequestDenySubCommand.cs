@@ -26,7 +26,7 @@ namespace RegionExtension.Commands.SubCommands
         public override void Execute(CommandArgsExtension args)
         {
             var region = (Region)Params[0].Value;
-            if (!PluginState.RegionExtensionManager.RegionRequestManager.Requests.Any(r => r.Region.ID == region.ID))
+            if (!args.Context.RegionManager.RegionRequestManager.Requests.Any(r => r.Region.ID == region.ID))
             {
                 args.Player.SendErrorMessage("Region '{0}' does not have request!".SFormat(region.Name));
                 return;
@@ -36,7 +36,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void SendRegionInfo(CommandArgsExtension args, Region region)
         {
-            if (PluginState.RegionExtensionManager.RemoveRequest(region, args.Player.Account, false))
+            if (args.Context.RegionManager.RemoveRequest(region, args.Player.Account, false))
             {
                 args.Player.SendSuccessMessage("Region '{0}' denied!".SFormat(region.Name));
             }

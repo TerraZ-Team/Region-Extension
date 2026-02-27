@@ -34,7 +34,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region, int id)
         {
-            if (PluginState.RegionExtensionManager.TriggerManager.RemoveTrigger(region, id))
+            if (args.Context.RegionManager.TriggerManager.RemoveTrigger(region, id))
                 args.Player.SendSuccessMessage("Trigger deleted!");
             else
                 args.Player.SendErrorMessage("Failed delete trigger!");

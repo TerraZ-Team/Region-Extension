@@ -46,7 +46,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void SendRegionInfo(CommandArgsExtension args, int page, Region region)
         {
-            var lines = PluginState.RegionExtensionManager.GetRegionInfo(region);
+            var lines = args.Context.RegionManager.GetRegionInfo(region);
             var usedName = args.Message.Split(' ')[0];
             PaginationTools.SendPage(
                 args.Player, page, lines, new PaginationTools.Settings
@@ -55,15 +55,15 @@ namespace RegionExtension.Commands.SubCommands
                     FooterFormat = string.Format("Type {0}{1} info {2} {{0}} for more information.", TShockAPI.Commands.Specifier, usedName, region.Name)
                 }
             );
-            var req = PluginState.RegionExtensionManager.RegionRequestManager.Requests.FirstOrDefault(r => r.Region.ID == region.ID);
+            var req = args.Context.RegionManager.RegionRequestManager.Requests.FirstOrDefault(r => r.Region.ID == region.ID);
             if (req == null)
                 return;
-            var settings = Utils.GetSettingsByUserAccount(req.User);
+            var settings = Utils.GetSettingsByUserAccount(args.Context.Config, req.User);
             var reqTime = StringTime.FromString(settings.RequestTime);
             if (!settings.AutoApproveRequest && !reqTime.IsZero())
             {
                 args.Player.SendMessage("This region requires request confirmation!", Microsoft.Xna.Framework.Color.Aqua);
-                var res = (req.DateCreation + StringTime.FromString(Utils.GetSettingsByUserAccount(req.User).RequestTime));
+                var res = (req.DateCreation + StringTime.FromString(Utils.GetSettingsByUserAccount(args.Context.Config, req.User).RequestTime));
                 args.Player.SendMessage("Region will be deleted in '{0}'!".SFormat((req.DateCreation + reqTime).ToString(Utils.DateFormat)), Microsoft.Xna.Framework.Color.Aqua);
             }
         }

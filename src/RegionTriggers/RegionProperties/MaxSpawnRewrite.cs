@@ -22,7 +22,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         public ICommandParam[] CommandParams => new ICommandParam[] { new FloatParam("ratio", "change player npc counting.\n Example: if there are 10 NPCs near the player and the ratio is 0.8, the number of NPCs for player will be 8, and more NPCs may spawn nearby" )};
         public Region[] DefinedRegions => _regions.Keys.ToArray();
 
-        private Dictionary<Region, ConditionDataPair<float>> _regions = new Dictionary<Region, ConditionDataPair<float>>();
+        private Dictionary<Region, ConditionDataPair<float>> _regions = new Dictionary<Region, ConditionDataPair<float>>(RegionIdComparer.Instance);
 
         public void InitializeEventHandler(TerrariaPlugin plugin)
         {

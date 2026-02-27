@@ -24,9 +24,15 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         public ICommandParam[] CommandParams => new[] { new ArrayParam<Item>("items...", "Items which will be banned in region.")};
         public Region[] DefinedRegions =>_itemsBan.Keys.ToArray();
 
-        private Dictionary<Region, ConditionDataPair<int>> _itemsBan = new Dictionary<Region, ConditionDataPair<int>>();
-        private Dictionary<Region, HashSet<int>> _itemsBanHash = new Dictionary<Region, HashSet<int>>();
+        private Dictionary<Region, ConditionDataPair<int>> _itemsBan = new Dictionary<Region, ConditionDataPair<int>>(RegionIdComparer.Instance);
+        private Dictionary<Region, HashSet<int>> _itemsBanHash = new Dictionary<Region, HashSet<int>>(RegionIdComparer.Instance);
         private DateTime _lastUpdate = DateTime.Now;
+        private readonly bool[] _triggerIgnores;
+
+        public RegionItemBan(bool[] triggerIgnores = null)
+        {
+            _triggerIgnores = triggerIgnores ?? new bool[Main.maxPlayers];
+        }
 
         public void InitializeEventHandler(TerrariaPlugin plugin)
         {
@@ -37,7 +43,7 @@ namespace RegionExtension.RegionTriggers.RegionProperties
         {
             if (DateTime.Now.AddSeconds(-2) < _lastUpdate)
                 return;
-            foreach(var plr in TShock.Players.Where(p => p != null && p.Active && !PluginState.TriggerIgnores[p.Index]))
+            foreach(var plr in TShock.Players.Where(p => p != null && p.Active && !_triggerIgnores[p.Index]))
                 CheckItemBan(plr);
             _lastUpdate = DateTime.Now;
         }

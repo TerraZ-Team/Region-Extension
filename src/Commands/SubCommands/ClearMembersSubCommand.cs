@@ -43,7 +43,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void ClearMembersInRegion(CommandArgsExtension args, Region region)
         {
-            if (PluginState.RegionExtensionManager.ClearAllowUsers(region.Name))
+            if (args.Context.RegionManager.ClearAllowUsers(region.Name))
                 args.Player.SendSuccessMessage("All users cleared from region.");
             else
                 args.Player.SendErrorMessage("Failed clear users.");

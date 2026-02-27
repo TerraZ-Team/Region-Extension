@@ -45,7 +45,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void SetRegionOwn(CommandArgsExtension args, UserAccount userAccount, Region region)
         {
-            if (PluginState.RegionExtensionManager.ChangeOwner(args, region, userAccount))
+            if (args.Context.RegionManager.ChangeOwner(args, region, userAccount))
                 args.Player.SendSuccessMessage("Region changeowner success!");
             else
                 args.Player.SendErrorMessage("Region changeowner failed!");

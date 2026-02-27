@@ -31,7 +31,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void ListProperties(CommandArgsExtension args, int page)
         {
-            var triggers = PluginState.RegionExtensionManager.PropertyManager.RegionProperties.Select(p => "{0} {1} - {2}".SFormat(string.Join('/', p.Names.Select(n => Utils.ColorCommand(n))), string.Join(' ', p.CommandParams.Select(p => p.GetColoredBracketName())), Localization.GetStringForPlayer(p.Description, args.Player)).Replace("  ", " "));
+            var triggers = args.Context.RegionManager.PropertyManager.RegionProperties.Select(p => "{0} {1} - {2}".SFormat(string.Join('/', p.Names.Select(n => Utils.ColorCommand(n))), string.Join(' ', p.CommandParams.Select(p => p.GetColoredBracketName())), Localization.GetStringForPlayer(p.Description, args.Player)).Replace("  ", " "));
             var usedName = args.Message.Split(' ')[0];
             var usedSubCommandName = args.Parameters[0];
             PaginationTools.SendPage(args.Player, page, triggers.ToList(),

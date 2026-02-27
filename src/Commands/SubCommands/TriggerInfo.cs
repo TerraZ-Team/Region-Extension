@@ -36,7 +36,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region, int page)
         {
-            var triggers = PluginState.RegionExtensionManager.TriggerManager.GetTriggers(region).Select(t => "({0}) {1} {2} {3} | {4}".SFormat(t.LocalId, t.Event.ToString(), t.Action.Name, t.Action.GetArgsString(), t.Conditions.GenerateConditionsString()));
+            var triggers = args.Context.RegionManager.TriggerManager.GetTriggers(region).Select(t => "({0}) {1} {2} {3} | {4}".SFormat(t.LocalId, t.Event.ToString(), t.Action.Name, t.Action.GetArgsString(), t.Conditions.GenerateConditionsString()));
             var usedName = args.Message.Split(' ')[0];
             var usedSubCommandName = args.Parameters[0];
             PaginationTools.SendPage(args.Player, page, triggers.ToList(),

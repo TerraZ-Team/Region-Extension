@@ -30,7 +30,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region)
         {
-            if (PluginState.RegionExtensionManager.TriggerManager.ClearTriggers(region))
+            if (args.Context.RegionManager.TriggerManager.ClearTriggers(region))
                 args.Player.SendSuccessMessage("Triggers cleared!");
             else
                 args.Player.SendErrorMessage("Failed clear triggers!");

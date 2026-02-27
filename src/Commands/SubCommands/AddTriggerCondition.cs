@@ -37,7 +37,7 @@ namespace RegionExtension.Commands.SubCommands
 
         private void AddRegionTrigger(CommandArgsExtension args, Region region, IRegionCondition condition, int[] ids)
         {
-            if (PluginState.RegionExtensionManager.TriggerManager.AddCondition(region, condition, ids))
+            if (args.Context.RegionManager.TriggerManager.AddCondition(region, condition, ids))
                 args.Player.SendSuccessMessage("Triggers condition added!");
             else
                 args.Player.SendErrorMessage("Failed added some conditions!");

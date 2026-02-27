@@ -10,6 +10,7 @@ namespace RegionExtension
     public static class Localization
     {
         public static string[] PlayersLocalization = new string[256];
+        public static string DefaultLocalization { get; set; } = "EN";
 
         public static Dictionary<string, Dictionary<string, string>> Languages = new Dictionary<string, Dictionary<string, string>>()
         {
@@ -243,7 +244,7 @@ namespace RegionExtension
         {
             var localization = "EN";
             if (player == null || player.TPlayer.whoAmI == -1 || string.IsNullOrEmpty(PlayersLocalization[player.TPlayer.whoAmI]))
-                localization = PluginState.Config.DefaultLocalization;
+                localization = DefaultLocalization;
             else
                 localization = PlayersLocalization[player.TPlayer.whoAmI];
             if (!Languages[localization].ContainsKey(name))
